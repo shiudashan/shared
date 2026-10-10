@@ -1,0 +1,22 @@
+{
+  "id": "parallel-ran-serial",
+  "made_up": true,
+  "run": "made up",
+  "kinds": [
+    "overlap"
+  ],
+  "log": [
+    "02:00:01 build: download workers 4",
+    "02:00:01 download toolchain start",
+    "02:04:29 download toolchain done (268 s); download sdk start",
+    "02:09:03 download sdk done (274 s); download assets start",
+    "02:13:35 download assets done (272 s); download test-data start",
+    "02:18:15 download test-data done (280 s)",
+    "02:18:15 build: 4 downloads, no dependency between them, at most 1 at once, 1,094 s wall"
+  ],
+  "feedback": "The four downloads ran one after another, each starting when the previous finished, though there is no dependency between them and 4 workers were free: 1,094 s in all, about four times as long as side by side. Independent tasks should run in parallel, up to the workers available.",
+  "about": "run",
+  "by": "assistant",
+  "status": "approved",
+  "approved": "person, 2026-10-10 (asked for it to be made up)"
+}
