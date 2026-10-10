@@ -17,11 +17,9 @@ Each proposal has these parts, a few plain sentences each:
 - "design": what then changes in the prompts or the code, each file named as listed.
 - "tasks": the steps of the work, in order.
 - "check": the check of its kind, with every number it uses written now.
-- "upsides" and "downsides": each quantified, as rough relative numbers.
-- "cost_of_delay": 1 to 20, relative: the value to users, the time criticality, and the risk the change removes, together.
-- "duration": 1 to 20, relative: the work the change takes.
+- "upsides" and "downsides": each a list of {"what", "amount", "unit"}, quantified as well as the evidence allows. Choose what to count for this proposal.
 
-Order the proposals by cost_of_delay divided by duration, highest first. Do not write a proposal too slight to matter. Name only files listed in the message.
+Quantify each proposal's upsides and downsides, keep the quantities side by side, and order the proposals by weighing them together; do not reduce them to a ratio. Do not write a proposal too slight to matter. Name only files listed in the message.
 
 Reply with one JSON object and nothing else:
-{"proposals": [{"findings": ["<finding>"], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "upsides": "...", "downsides": "...", "cost_of_delay": 1, "duration": 1, "changed": "<what changed since the last round, or empty>"}]}
+{"proposals": [{"findings": ["<finding>"], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "changed": "<what changed since the last round, or empty>"}]}

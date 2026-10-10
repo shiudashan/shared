@@ -37,11 +37,10 @@ Proposals too slight to matter are not written.
 
 ## Ordering
 
-The order is the planner's alone. The planner orders by cost of delay divided by duration
-(CD3; SAFe's WSJF). Cost of delay counts the value to users, the time criticality, and the risk
-the change removes. Estimates are rough and relative, discounted by confidence or given as
-ranges. An estimate is refined only where the refinement could change the order (Hubbard's value
-of information). The order is redone every step.
+The order is the planner's alone. The planner quantifies each proposal's upsides and downsides
+and orders the proposals by them. What counts as an upside or a downside is left to the planner
+and the project. The quantities stay side by side, visible with the order; the planner does not
+fold them into a single ratio. The order is redone every step.
 
 ## In the loops
 
