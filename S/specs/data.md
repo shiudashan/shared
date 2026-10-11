@@ -1,0 +1,86 @@
+# Data
+
+S keeps eight types of data. Each type has its own folder under `S/data/`, with a README that
+gives its format. Each entry is one JSON file, named by its `id`.
+
+## Fields every entry has
+
+- `id`: a short name, the file's name without `.json`.
+- `by`: who wrote the entry: a role and its player, such as `run-reviewer` played by a named
+  model, or the person.
+- `status`: where the entry stands. The values for each type are given below.
+- `decided` (when the status was set by someone other than the author): who set it, and when.
+- `made_up` (optional): `true` for an entry made up as an example, not taken from a run.
+
+Words are recorded as given. Words someone else wrote and the person approved are recorded with
+their author in `by` and the person in `decided`. They are never recorded as the person's words.
+
+## The types
+
+- **Use cases.** One use case of M.f: `seed`, the input a run starts from; `reference`, the
+  reference answer; `rubric`, a list of weighted checks, each `{"check", "weight"}`. Status:
+  `active` or `retired`.
+- **Run records.** One run: `versions`, of M and of S; `settings`; `use_case`, the id of the use
+  case; `trace`, every model call and tool call the run made, each with its start, end, inputs
+  and outputs, nested under the call that started it, as OpenTelemetry spans; `outcome`;
+  `grades`, the ids of the run grades given to the run; `cost`, with time, tokens and money.
+  Status: `complete` or `abandoned`. (MLflow runs, OpenTelemetry's GenAI agent spans, SLSA
+  provenance, and Anthropic's split between transcript and outcome.)
+- **Run grades.** One grade of one run: `run`; `grade`, a number on a better-to-worse scale
+  from 0 (worst) to 1 (best); `reason`; `grader`, recorded in `by`. Status: `given`,
+  `approved` or `rejected`.
+- **Run reviews.** One finding: `finding`, what is wrong and what it should be; `symptom`, the
+  evidence it rests on, verbatim from a run record or a code review, as log lines and computed
+  facts; `kinds`, the kinds of fact the symptom shows; `reference`, what the symptom is judged
+  against: a use case, a test, a gate, a code review or an earlier run review; `severity`, from
+  1 (costs little) to 3 (makes the run's result unusable); `about`, `run` or the id of one part
+  of the run's output; `run`, the run's id, empty for a code review, or `made up`. Status: `open`,
+  `approved`, `rejected` or `closed`. A rejected entry stays as an example of a finding not to
+  write.
+- **Proposals.** One change proposal: `findings`, the run reviews it answers; `gain`; `delta`,
+  what the change adds, modifies or removes in the spec; `kind`; `design`; `tasks`; `check`;
+  `upsides` and `downsides`, each a list of `{"what", "amount", "unit"}`, kept side by side;
+  `rank`, its place in the planner's order; `corrections`, the ids of the proposal reviews and
+  decisions it received; `changed`, what changed since the last round. Status: `proposed`,
+  `withdrawn`, `approved`, `postponed` or `done`.
+- **Proposal reviews.** One review of one proposal: `proposal`; `feedback`, in words;
+  `corrections`, each `{"field", "from", "to", "reason"}`; `disposition`, the recommendation:
+  approve, postpone or reject; `after`, what changed in the proposal after the review. Status:
+  `open` or `answered`.
+- **Decisions.** One decision: `decision`, one of `approve`, `postpone`, `reject`, `release` or
+  `keep`; `about`, the ids of the proposals, or the versions v and v+1; `reason`. Status:
+  `final` or `reverted`.
+- **Code reviews.** One review of one diff: `diff`, the commits reviewed; `change`, the id of the
+  proposal it implements; `comments`, each `{"lines", "text", "rule"}`; `outcome`, `accept` or
+  `request changes`. Status: `open` or `closed`.
+
+## Which action reads which type
+
+A role's actions are listed in the role's spec. An x marks a type the action reads.
+
+| Role | Action | Use cases | Run records | Run grades | Run reviews | Proposals | Proposal reviews | Decisions | Code reviews |
+|---|---|---|---|---|---|---|---|---|---|
+| User | run M.f side by side, v and v+1 (step 5) | x | | | | | | | |
+| User | run M.f after a release | x | | | | | | | |
+| User | grade a run | x | x | x | | | | | |
+| User | review proposals (step 4) | | | | x | x | x | x | |
+| User | give feedback and corrections (step 4) | | | | | x | x | x | |
+| Decision maker | approve change requests (step 4) | | | | x | x | x | x | |
+| Decision maker | release v+1 or keep v (step 7) | x | x | x | | | | x | x |
+| Run reviewer | read run records (step 1) | | x | | | | | | |
+| Run reviewer | read code reviews (step 1) | | | | | | | | x |
+| Run reviewer | write a finding with its symptom (step 1) | | x | x | x | | | | |
+| Run reviewer | name the reference a symptom is judged against (step 1) | x | | | | | | | |
+| Run reviewer | grade a finding by severity (step 1) | | | x | x | | | x | |
+| Planner | write change proposals from findings (step 2) | | | | x | x | | x | |
+| Planner | quantify upsides and downsides (step 2) | | | x | x | x | | | |
+| Planner | order the proposals (step 2) | | | | | x | | x | |
+| Planner | revise from reviews (steps 3, 4) | | | | | | x | x | |
+| Proposal reviewer | review the top proposals (step 3) | | | | x | x | x | x | |
+| Proposal reviewer | give textual feedback (step 3) | | | | | | x | | |
+| Proposal reviewer | give numerical corrections (step 3) | | | | | x | | x | |
+| Coder | write the change requests (step 5) | x | | | | x | | x | x |
+| Coder | pass each change request's gates (step 5) | x | x | | | | | | |
+| Code reviewer | review a diff (step 6) | | | | | x | | | x |
+| Code reviewer | accept the code (step 6) | | | | | | | | x |
+| Code reviewer | send the code back with the review (step 6) | | | | | | | | x |
