@@ -1,0 +1,13 @@
+{
+  "role": "coder",
+  "spec": "S/specs/coder.md",
+  "model": "no preference",
+  "thinking": "off",
+  "reads": [
+    "S/data/use-cases/",
+    "S/data/run-records/",
+    "S/data/proposals/",
+    "S/data/decisions/",
+    "S/data/code-reviews/"
+  ]
+}

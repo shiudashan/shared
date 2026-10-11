@@ -1,0 +1,13 @@
+{
+  "role": "planner",
+  "spec": "S/specs/planner.md",
+  "model": "no preference",
+  "thinking": "off",
+  "reads": [
+    "S/data/run-grades/",
+    "S/data/run-reviews/",
+    "S/data/proposals/",
+    "S/data/proposal-reviews/",
+    "S/data/decisions/"
+  ]
+}

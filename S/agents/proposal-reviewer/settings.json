@@ -1,0 +1,12 @@
+{
+  "role": "proposal-reviewer",
+  "spec": "S/specs/proposal-reviewer.md",
+  "model": "no preference",
+  "thinking": "off",
+  "reads": [
+    "S/data/run-reviews/",
+    "S/data/proposals/",
+    "S/data/proposal-reviews/",
+    "S/data/decisions/"
+  ]
+}

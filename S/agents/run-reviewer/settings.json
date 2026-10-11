@@ -1,0 +1,14 @@
+{
+  "role": "run-reviewer",
+  "spec": "S/specs/run-reviewer.md",
+  "model": "no preference",
+  "thinking": "off",
+  "reads": [
+    "S/data/use-cases/",
+    "S/data/run-records/",
+    "S/data/run-grades/",
+    "S/data/run-reviews/",
+    "S/data/decisions/",
+    "S/data/code-reviews/"
+  ]
+}

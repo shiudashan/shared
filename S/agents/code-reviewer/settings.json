@@ -1,0 +1,10 @@
+{
+  "role": "code-reviewer",
+  "spec": "S/specs/code-reviewer.md",
+  "model": "no preference",
+  "thinking": "off",
+  "reads": [
+    "S/data/proposals/",
+    "S/data/code-reviews/"
+  ]
+}

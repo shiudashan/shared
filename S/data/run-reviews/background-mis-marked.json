@@ -1,0 +1,20 @@
+{
+  "id": "background-mis-marked",
+  "made_up": true,
+  "run": "made up",
+  "about": "run",
+  "finding": "The thumbnail and search-index jobs ran at critical-path priority: 1,628 of the hour's 1,840 critical jobs, though they are background work nobody waits on. They held up user uploads, whose wait reached 41 s at p95. Background work should run at background priority, so it never holds up the critical path.",
+  "symptom": [
+    "worker config: upload-commit priority=critical; thumbnail-render priority=critical; search-index priority=critical",
+    "job stats 14:00-15:00: critical 1,840 jobs (upload-commit 212, thumbnail-render 1,203, search-index 425); background 0 jobs",
+    "upload-commit wait p95 41 s (target 2 s)"
+  ],
+  "kinds": [
+    "priorities"
+  ],
+  "reference": "",
+  "severity": 2,
+  "by": "an AI assistant",
+  "status": "approved",
+  "decided": "the person, 2026-10-10"
+}
