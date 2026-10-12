@@ -136,9 +136,11 @@ if [ $RUN = first ]; then
     ask "customise $AGENTS_DIR/$role" "Customise the agent in $AGENTS_DIR/$role/ for this \
 project. Read its role spec in S/specs/$role.md, the project's CLAUDE.md, and the project's own \
 specs and code. Edit prompt.md and settings.json in place so the agent knows, as far as the role \
-needs: how to run the project's program, its release rules, how to read the project's run \
-records and standards, where its specs are, its build, test and eval commands, and its \
-languages and review rules. Keep the role's actions and data as the spec gives them." || true
+needs, the project as a whole: what the project is, how the project lays out its prototypes and \
+their generations, its release rules, its standards, and its languages and review rules. Name no \
+single prototype or generation, and point to no folder inside one: the project's own sync adds \
+what is specific to a generation. Do not read obsolete/ or any archived copy. Keep the role's \
+actions and data as the spec gives them." || true
   done
 fi
 
