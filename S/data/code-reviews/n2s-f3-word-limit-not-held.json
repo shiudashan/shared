@@ -1,0 +1,22 @@
+{
+  "id": "n2s-f3-word-limit-not-held",
+  "made_up": true,
+  "diff": "the f3 code, pass 2 of the review",
+  "change": "",
+  "comments": [
+    {
+      "lines": "`src/orchestrator.ts:316-319` and `src/orchestrator.ts:410-412` (count, then only a log note at 1.5 times the limit); `prompts/integrator.txt` (\"Do not count words; the program counts them.\")",
+      "text": "Nothing in the program holds the word limit. The system spec makes the word limit the mechanism that drives divide and conquer (\"Its body is held to the word limit\"). The integrator spec and prompt leave the counting to the program. The program counts, and if the count is over 1.5 times the limit it writes a line in the log. Nothing else happens. In the end-to-end runs, 20 of 21 integrator rewrites are over 500 words, from 528 to 805. A node over the limit is carrying its children's detail, which is the opposite of what the limit is for. The change: after the expander or the integrator writes a node, the program counts its body. If the count is over the limit times a tolerance, the call goes back once, with the count as a data line (\"Body: 805 words; limit 500.\"). This is the same way the synthesizer gets its candidate check back. The tolerance goes in `runscript.json` next to `wordLimit`, replacing the hard-coded 1.5.",
+      "rule": "system spec, \"The board\" (\"Its body is held to the word limit\"); integrator spec, failure modes (\"the program counts words\"); mantra \"Bugs indicate poor architecture\" (the limit lives only as prose in the prompts, and has no owner in the program)."
+    }
+  ],
+  "outcome": "request changes",
+  "pattern": {
+    "context": "A system where an agent generates text content for a structured document, and a central program is responsible for enforcing structural constraints like length limits.",
+    "problem": "The program calculates the length of the generated content but only logs a warning if it exceeds a hard-coded threshold, without enforcing the limit or requesting a revision. This results in most outputs violating the constraint, undermining the system's design goal of controlled granularity.",
+    "solution": "Implement active enforcement: after generation, if the content length exceeds the limit multiplied by a configurable tolerance, trigger a single retry with the specific count and limit provided as feedback to the agent. Move the tolerance factor from hard-coded logic to the configuration file.",
+    "consequences": "Outputs will adhere to the length constraint, ensuring the structural integrity of the document. The system becomes more robust by closing the loop between measurement and correction, rather than just observing failures."
+  },
+  "by": "code-reviewer at N2S, played by qwen3.8-flash-next",
+  "status": "closed"
+}

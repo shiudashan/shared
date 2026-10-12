@@ -1,0 +1,24 @@
+{
+  "id": "n2s-overviews-too-long",
+  "run": "N2S: prototype2/f4/runs/e2e-g8",
+  "about": "run",
+  "finding": "The system's high-level summaries are excessively verbose, ranging from 158 to 413 words, with the root summary reaching 322 words. These summaries violate the standard by restating the content of their child components rather than concisely explaining the node's purpose and rationale. The root summary, for instance, ends by walking through its five parts again, which is explicitly forbidden.",
+  "symptom": [
+    "Overview words of each split node (text above its list): root 322, level1-node0 158, level1-node1 208, level1-node2 413, level1-node3 168, level1-node4 170",
+    "root, the end of its overview: \"The parts below are the five behaviours a user or another part of the system would have to be able to rely on. Together they cover the whole: work gets done, the work is examined, a change must earn its place, it arrives without a restart, and the agent knows when to stop one and start the other.\"",
+    "root, its list: Part 1: The agent does its ordinary work across the user's cluster | Part 2: Between jobs the agent writes better versions of its own instructions | Part 3: A change is kept only when the agent's own judging says it is better | Part 4: New instructions reach the working agent without a restart, and nothing else moves | Part 5: The agent turns between working and improving"
+  ],
+  "kinds": [
+    "overviews"
+  ],
+  "reference": "",
+  "severity": 2,
+  "pattern": {
+    "context": "When generating high-level summaries for nodes in a hierarchical plan tree.",
+    "problem": "The summaries are too long (158-413 words) and redundantly restate the content of their child components instead of providing a concise rationale.",
+    "solution": "Summaries should be a few sentences explaining the node's purpose at its level and why its parts are chosen, without restating the parts.",
+    "consequences": "Verbose summaries increase token usage and cognitive load, obscuring the high-level structure by mixing it with low-level details."
+  },
+  "by": "run-reviewer at N2S, played by qwen3.8-flash-next",
+  "status": "open"
+}

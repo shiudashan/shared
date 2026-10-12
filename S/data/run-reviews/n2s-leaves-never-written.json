@@ -1,0 +1,31 @@
+{
+  "id": "n2s-leaves-never-written",
+  "run": "N2S: prototype2/f4/runs/e2e-g8",
+  "about": "run",
+  "finding": "The plan tree contains no written content at its leaves. All 19 leaf nodes are empty, indicating the expansion process failed to terminate with concrete, proven tasks.",
+  "symptom": [
+    "Nodes per depth: depth 0: 1, depth 1: 5, depth 2: 19; 25 in all",
+    "Leaves (nodes with no part made): 19; with written content: 0; planned \"Not split.\" and not yet written: 0; deepest leaf at depth 2",
+    "[03:56:54] split root: made 5 part node(s) with no content",
+    "[04:14:10] split level1-node0: made 3 part node(s) with no content",
+    "[04:14:10] split level1-node1: made 4 part node(s) with no content",
+    "[04:14:10] split level1-node2: made 4 part node(s) with no content",
+    "[04:14:10] split level1-node3: made 4 part node(s) with no content",
+    "[04:14:10] split level1-node4: made 4 part node(s) with no content"
+  ],
+  "kinds": [
+    "nodes per depth",
+    "leaves",
+    "splits"
+  ],
+  "reference": "",
+  "severity": 3,
+  "pattern": {
+    "context": "When a hierarchical planning agent expands a root hypothesis into a tree of sub-tasks.",
+    "problem": "The agent recursively splits every node until the depth limit is reached, resulting in 19 leaf nodes that are all empty (0 written content).",
+    "solution": "The agent should identify nodes that represent atomic tasks and write their content instead of splitting them, ensuring the final tree has proven, written leaves.",
+    "consequences": "The plan is unusable because no concrete steps are defined; the solution ensures the plan terminates with actionable, written tasks."
+  },
+  "by": "run-reviewer at N2S, played by qwen3.8-flash-next",
+  "status": "open"
+}
