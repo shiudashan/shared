@@ -140,8 +140,9 @@ Two activities sit beside the loop rather than in its sequence, each placed wher
 appears:
 - **Retrospective** looks at how S itself worked. S holds one retrospective per loop, after
   monitor, and a postmortem at once after a release that proves worse. (Scrum; Google SRE.)
-- **Curation** is upstream (section 5) applied to data: entries that prove useful beyond their
-  layer are collected, de-duplicated, cleansed and promoted, off the critical path (section 6).
+- **Curation** is upstream (section 5) applied to data. The role that produces each piece of data
+  sends the piece upward as the piece proves useful beyond its layer, off the critical path
+  (section 6).
 
 The person comes in at steps 4 and 7. No author reviews its own artifact. (ITIL's standard
 change; DORA on change approval.)
@@ -190,64 +191,80 @@ three-way merge, keeping the project's own changes. Leg 2 is the project's own c
 
 ## 5. Upstream, legs 3 and 4
 
-Source: `~/shared/survey/survey-upstreaming.md`. A change moves up a layer in five acts, all
-carried by existing roles (upstream-first practice at Red Hat and in Linux; Debian and Ubuntu
-patch flow; InnerSource):
+Sources: `~/shared/survey/survey-upstreaming.md`, `survey-curation-roles.md`.
 
-1. **Tag at birth.** The planner states each proposal's upstream status (step 2), and the
-   decision maker confirms it (step 4).
-2. **Track what is carried.** A program lists each layer's own changes with their status, as
-   Debian's patch tracker does. The run reviewer turns a candidate left unsent too long into a
-   finding.
-3. **Propose upward.** The planner writes the change as a proposal in the layer above, in that
-   layer's terms (section 7).
-4. **Review and accept upward.** The proposal runs through the upper layer's own step: its
-   proposal reviewers, its coder and code reviewer, and its decision maker. For `shared`, the
-   person sits on top.
-5. **Drop the local copy.** At the next sync down, the lower layer's coder takes the upstream
-   version and removes its own copy. A change the upper layer declines is marked local.
+Each role carries its own work upward. A role's agent at the downstream layer sends; the same
+role's agent at the upstream layer receives. The roles act continuously, each piece at its own
+opportunity: when the role produces the piece, when a duplicate appears, when the upstream layer
+changes. No role moves a whole store in one batch. (Tag at birth and a continuous sweep: the
+Linux stable process, Debian's patch tracker.)
 
-Upstream runs when a change is tagged, in a periodic sweep, and at the end of each generation,
-since in-iteration content lasts only that generation. Each upstream is followed at once by a
-sync down.
+**The sending agent** holds the downstream layer's context, so the sending agent does the work
+that needs context:
+- tags each change or piece of data at birth, as local or as a candidate for the upstream layer
+  (Debian's DEP-3 `Forwarded:`; Android's `UPSTREAM:` tags). For a change, the planner writes the
+  tag in the proposal (step 2) and the decision maker confirms the tag (step 4);
+- tracks what the downstream layer carries, and raises a candidate left unsent too long as a
+  finding;
+- collects, removes duplicates and clusters near duplicates against what the sending agent has
+  already sent (section 6);
+- revises the content into the upstream layer's terms (section 7), and sends the piece.
+
+**The receiving agent** lacks the downstream layer's context, so the receiving agent judges each
+piece as received, and accepts or drops the piece. The receiving agent does not revise the piece.
+At `shared`, the person decides on top. (The upstream maintainer judges a change on its own
+merits: the Linux kernel, Debian, InnerSource; Fedora keeps a person as the final decider.)
+
+**Acceptance chains upward.** Once the receiving agent accepts a piece, the receiving agent
+becomes the sending agent for that piece toward the next layer up, with its own layer's context.
+
+**Back down.** At the downstream layer's next sync, the downstream coder replaces the local copy
+with the accepted upstream version. A dropped piece stays in the downstream layer, marked local
+and visible. (Ubuntu's sync drops a carried change; Android forbids hiding a rejected patch.)
+
+Each role's agent performs these acts by calling the APIs and running the programs each act needs.
+The coder builds those programs; the role that runs a program answers for the program's results.
+(LangSmith, Label Studio, Dependabot: a program performs the act, a named role owns the program.)
 
 ## 6. Data and curation
 
-Source: `~/shared/survey/survey-data-curation.md`. Data moves up in five stages, on both legs:
+Source: `~/shared/survey/survey-data-curation.md`. The role that produces each data type sends
+the type upward, and the same role at the upstream layer receives the type: the run reviewer for
+run reviews, the user for use cases and run grades, the planner for proposals, the proposal
+reviewer for proposal reviews, the decision maker for decisions, the code reviewer for code
+reviews.
 
-1. **Collect.** Every entry records its author (person, AI or program), its origin (layer and
-   source id), a content hash, a status and a version. (LangSmith, Langfuse, Argilla, MLflow.)
-2. **Remove exact duplicates** by the hash of a normalised entry.
-3. **Cluster near duplicates** by direct pairwise comparison, at our data's size. Repeated
-   judgements of one item stay, as agreement; only true copies merge; a later decision of the
-   person retires an earlier one. (CROWDLAB; NeMo Curator; SemDeDup.)
-4. **Cleanse.** Automated flags of label errors, secrets and contamination go to a reviewer
-   before any change. (cleanlab; detect-secrets.)
-5. **Promote** through a review gate into the upper layer's dataset, as a git commit and tag.
-   Each data folder's README states its licence and what was withheld. (Datasheets for
-   Datasets.)
+The sending agent:
+1. **collects** each entry with its author (person, AI or program), its origin (layer and source
+   id), a content hash, a status and a version (LangSmith, Langfuse, Argilla, MLflow);
+2. **removes exact duplicates** by the hash of a normalised entry;
+3. **clusters near duplicates** by direct pairwise comparison, keeping repeated judgements of one
+   item as agreement, merging only true copies, and letting a later decision of the person
+   retire an earlier one (CROWDLAB; NeMo Curator; SemDeDup);
+4. **cleanses** each entry that an automated check flags for a label error, a secret or
+   contamination (cleanlab; detect-secrets).
 
-While prototyping, the person's words go up as they are.
+The receiving agent accepts or drops each entry. The upstream layer commits each accepted entry
+into the layer's dataset and tags a new version (git commit and tag), and each data folder's
+README states the folder's licence.
 
 ## 7. Context in upstreamed examples
 
-Source: `~/shared/survey/survey-example-context.md`. An upstreamed example is the smallest thing
-that still shows its point, plus the context a stranger needs to read it:
-- **keep** the evidence and the verdict word for word: log lines, diff hunks, the grade and its
-  reason, numbers with units;
-- **add** only what removes an ambiguity: lower-layer ids and jargon replaced by what they mean,
-  one sentence of environment, the reference stated in words (decontextualisation; KCS;
-  contextual retrieval);
-- **drop** every piece whose removal leaves the verdict unchanged, largest first (delta
-  debugging), and long logs summarised with a link to the original.
+Source: `~/shared/survey/survey-example-context.md`. The sending agent revises each example into
+the smallest form that still shows the example's point, plus the context a stranger needs:
+- the sending agent **keeps** the evidence and the verdict word for word: log lines, diff hunks,
+  the grade and its reason, numbers with units;
+- the sending agent **adds** only what removes an ambiguity: the downstream layer's ids and
+  jargon replaced by what they mean, one sentence of environment, the reference stated in words
+  (decontextualisation; KCS; contextual retrieval);
+- the sending agent **drops** every piece whose removal leaves the verdict unchanged, largest
+  first (delta debugging), and summarises long logs with a link to the original.
 
-The check: a reader with a fresh context, given only the example, reaches the same verdict. Our
-inference, after the interestingness test of test-case reducers. An example a few hundred tokens
-long fits; one that cannot stand alone stays in its layer.
-
-Leg 3 replaces what is specific to the generation and keeps the project's terms. Leg 4 also
-replaces the project's terms and writes the example in pattern form: context, problem, solution,
-consequences.
+On leg 3 the sending agent replaces what is specific to the generation and keeps the project's
+terms. On leg 4 the sending agent also replaces the project's terms, and writes the example in
+pattern form: context, problem, solution, consequences. The receiving agent's acceptance is the
+test of the revision: an example the receiving agent cannot judge without the downstream context
+lacks context.
 
 ## 8. The reviewers
 
@@ -261,19 +278,18 @@ consequences.
 
 1. Leg 1, sync to N2S: built and run.
 2. Audit what leg 1 produced in N2S.
-3. Leg 4 machinery in `shared`: the upstream spec, the tracking program, the curation stages and
-   the context check, and the roles' upstream duties in their specs.
+3. Leg 4 in `shared`: the upstream spec, and each role's sending and receiving duties in the
+   role's spec, with the programs the roles call.
 4. Leg 2, then a step of S on f5, then legs 3 and 4.
 
 ## 10. Open decisions
 
-1. Whether curation is a duty of the existing roles, as the upstreaming survey finds, or a role
-   of its own, a curator, as the curation survey infers.
-2. A middle home for content general to some projects but not all, as Kustomize components
+1. A middle home for content general to some projects but not all, as Kustomize components
    allow.
-3. The first source of use cases.
-4. The blind re-labelling of 20–30 items.
+2. The first source of use cases.
+3. The blind re-labelling of 20–30 items.
 
 ## Metadata
 
-- Revised on 2026-10-12 with the surveys of upstreaming, data curation and example context.
+- Revised on 2026-10-12 with the surveys of upstreaming, data curation and example context, and
+  later that day with the model of sending and receiving agents and the survey of curation roles.
