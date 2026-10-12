@@ -12,6 +12,21 @@ Each action names the data types it reads (`data.md`) and what it writes.
   in M.p first, then in M.f, following `building.md`.
 - **Pass each change request's gates (step 5).** Reads use cases and run records. Runs the
   checks of the change's kind and records their results.
+- **Send a reusable program upward.** Reads the programs the coder wrote at the coder's layer,
+  such as a script or a tool another layer can run. Writes each revised change, with the
+  program's files, tests and spec, into `S/outbox/changes/`.
+- **Receive a change from below.** Reads each received change alone. Accepts or drops the
+  change, with a reason.
+
+## Upstream
+
+The coder carries changes upward, as `upstream.md` states for every role. The coder sends a
+change when the program does a job that another layer also needs. When the coder revises a
+change, the coder replaces each path and name of the coder's layer by the layer above's, and
+keeps the program's tests. When the coder receives a change, the coder accepts the change when
+the coder can tell from the files and the tests that the program does the job the change states,
+and when the program serves layers beyond the layer the change came from. The coder at the upper
+layer then applies each accepted change and runs the change's tests.
 
 ## Outputs
 

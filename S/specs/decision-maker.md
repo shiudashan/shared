@@ -13,6 +13,20 @@ Each action names the data types it reads (`data.md`) and what it writes.
   rest. Writes a decision for each proposal, with its reason.
 - **Release v+1 or keep v (step 7).** Reads use cases, run records, run grades, decisions and
   code reviews. Writes a release decision, with its reason.
+- **Send decisions upward.** Reads decisions at the decision maker's layer. Writes each revised
+  entry into `S/outbox/decisions/`.
+- **Receive decisions from below.** Reads each received entry alone. Accepts or drops the entry,
+  with a reason.
+
+## Upstream
+
+The decision maker carries decisions upward, as `upstream.md` states for every role. The
+decision maker sends a decision when the decision's reason weighs a trade-off that another
+project faces. When the decision maker revises a decision, the decision maker keeps the decision
+word and the reason word for word, and replaces each id in `about` by what the proposal or
+version changed. When the decision maker receives a decision, the decision maker accepts the
+decision when the decision maker reaches the same decision from `about` and the reason alone,
+and when the reason serves projects beyond the project the decision came from.
 
 ## Approving change requests
 

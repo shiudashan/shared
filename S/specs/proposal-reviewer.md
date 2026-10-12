@@ -14,6 +14,21 @@ Each action names the data types it reads (`data.md`) and what it writes.
   proposal review.
 - **Give numerical corrections (step 3).** Reads proposals and decisions. Writes corrections to
   the proposal's numbers into the proposal review.
+- **Send proposal reviews upward.** Reads proposal reviews at the proposal reviewer's layer.
+  Writes each revised entry into `S/outbox/proposal-reviews/`.
+- **Receive proposal reviews from below.** Reads each received entry alone. Accepts or drops the
+  entry, with a reason.
+
+## Upstream
+
+The proposal reviewer carries proposal reviews upward, as `upstream.md` states for every role.
+The proposal reviewer sends a review when the review's point checks a rule that another
+project's proposals also face. When the proposal reviewer revises a review, the proposal
+reviewer keeps the feedback's point, the corrections and the disposition word for word, and
+replaces the proposal's id and each spec section by what the proposal and the section say. When
+the proposal reviewer receives a review, the proposal reviewer accepts the review when the
+proposal reviewer reaches the same point and disposition from the review alone, and when the
+point serves projects beyond the project the review came from.
 
 ## Reviews
 

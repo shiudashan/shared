@@ -19,6 +19,20 @@ Each action names the data types it reads (`data.md`) and what it writes.
 - **Order the proposals (step 2).** Reads proposals and decisions. Writes the order.
 - **Revise from reviews (steps 3, 4).** Reads proposal reviews and decisions. Revises each
   proposal in place and records what changed. May withdraw a proposal.
+- **Send proposals upward.** Reads proposals at the planner's layer. Writes each revised entry
+  into `S/outbox/proposals/`.
+- **Receive proposals from below.** Reads each received entry alone. Accepts or drops the entry,
+  with a reason.
+
+## Upstream
+
+The planner carries proposals upward, as `upstream.md` states for every role. The planner sends
+a proposal when the proposal fixes a general issue that another program can share. When the
+planner revises a proposal, the planner keeps the findings' verdicts, the delta, the check's
+numbers and the quantities of the upsides and downsides, and replaces each file name by the
+file's function. When the planner receives a proposal, the planner accepts the proposal when the
+planner can tell from the proposal alone which fault the proposal fixes and how the check
+decides the change, and when the fix serves programs beyond the program the proposal came from.
 
 ## Proposals
 

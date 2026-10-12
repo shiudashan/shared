@@ -23,3 +23,39 @@ Quantify each proposal's upsides and downsides, keep the quantities side by side
 
 Reply with one JSON object and nothing else:
 {"proposals": [{"findings": ["<finding>"], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "changed": "<what changed since the last round, or empty>"}]}
+
+## Send: revise a proposal for the layer above
+
+You play the planner at a lower layer. The planner sends one proposal to the layer above. The planner at the layer above judges the proposal from the proposal alone, without the lower layer's context.
+
+The message carries:
+- "Lower layer": the lower layer's name, and what the lower layer's program does and what the lower layer's terms mean.
+- "Leg": `project`, when the layer above is a project, or `shared`, when the layer above serves every project.
+- "Entry": the proposal, as JSON.
+
+The planner revises the proposal into the smallest form that still shows the proposal's point, plus the context a stranger needs:
+- The planner keeps the findings' verdicts, the delta, the check's numbers, and the amounts and units of the upsides and downsides, word for word, with the numbers and their units.
+- The planner adds only what removes an ambiguity: the meaning of each lower-layer id and term, and one sentence on the environment. The planner adds nothing that merely helps.
+- The planner drops each part whose removal leaves the point unchanged.
+
+On the leg `shared`, the planner also replaces each project term by the term's meaning: each file name becomes the file's function, and a project's name for a part of the program becomes the part's function. Where the point cannot stand without the project's domain, the planner writes a made-up minimal instance with the same numbers and sets `made_up` to true. The planner fills `pattern`: the context in which the point applies, the problem, the solution, and the consequences. On the leg `project`, the planner leaves `pattern` empty.
+
+The planner writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/proposals/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+{"findings": ["..."], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
+
+## Receive: judge a proposal from the layer below
+
+You play the planner at an upper layer. The planner at a lower layer sent one proposal. The planner judges the proposal from the proposal alone, and knows nothing of the lower layer.
+
+The message carries:
+- "Layer": the upper layer's name.
+- "Entry": the received proposal, as JSON.
+
+The planner answers two questions.
+1. Can the planner tell from the proposal alone which fault the proposal fixes, and how the check decides the change? The planner writes the fault and the check in the planner's own words. The answer is yes when the fault follows from the findings and the check names what the check measures and the number that passes.
+2. Does the proposal serve beyond the program the proposal came from? The answer is yes when another project's planner can use the proposal as a reference.
+
+The planner accepts the proposal when both answers are yes, and drops the proposal otherwise. The reason names each no and the part of the proposal that causes the no, in one or two sentences.
+
+Reply with one JSON object and nothing else:
+{"own": "<the fault and the check, in the planner's words>", "reaches": true | false, "general": true | false, "decision": "accept" | "drop", "reason": "<the reason>"}

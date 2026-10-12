@@ -26,6 +26,7 @@ AGENTS_DIR="S/src/agents"     # the project's agents, relative to the project ro
 # What comes from where: "<path in shared>|<path in the project>". Folders end in "/".
 MAP=(
   "S/src/sync.sh|S/src/sync.sh"
+  "S/src/upstream.sh|S/src/upstream.sh"
   "survey/|S/survey/"
   "S/specs/|S/specs/"
   "S/config/CLAUDE.md|CLAUDE.md"
@@ -33,6 +34,7 @@ MAP=(
   "S/config/.claude/hooks/|.claude/hooks/"
   "S/config/.claude/skills/|.claude/skills/"
   "S/data/|$DATA_DIR/"
+  "S/outbox/|S/outbox/"
   "S/src/agents/|$AGENTS_DIR/"
 )
 # Files joined with the project's own on the first run, rather than copied.
@@ -124,7 +126,7 @@ for m in "${MAP[@]}"; do
   [ "$d" = "S/src/sync.sh" ] && continue        # handled in step 1
   sync_entry "$s" "$d"
 done
-chmod +x "$P/.claude/hooks/"*.py 2>/dev/null || true
+chmod +x "$P/.claude/hooks/"*.py "$P/S/src/upstream.sh" 2>/dev/null || true
 
 # 2.4 Programs: on the first run, each role's agent is customised for the project.
 if [ $RUN = first ]; then

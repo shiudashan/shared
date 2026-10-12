@@ -21,8 +21,11 @@ customisations.
       `<project>/.claude/settings.json`, by a `claude -p` step. `shared/S/config/.claude/hooks/` goes
       to `<project>/.claude/hooks/`, and `shared/S/config/.claude/skills/` to
       `<project>/.claude/skills/`.
-   3. **Data.** Each `shared/S/data/<type>/` goes to `<project>/S/data/<type>/`.
-   4. **Programs.** Each `shared/S/src/agents/<role>/` goes to `<project>/S/src/agents/<role>/`. Then a
+   3. **Data.** Each `shared/S/data/<type>/` goes to `<project>/S/data/<type>/`. Each
+      `shared/S/outbox/<type>/` goes to `<project>/S/outbox/<type>/`, empty but for a `.gitkeep`,
+      so the project's sending agents find the outbox (`upstream.md`).
+   4. **Programs.** `shared/S/src/upstream.sh` goes to `<project>/S/src/upstream.sh`. Each
+      `shared/S/src/agents/<role>/` goes to `<project>/S/src/agents/<role>/`. Then a
       `claude -p` step per role customises the agent for the project: how to run M.f, the
       release rules, how to read the project's run records and standards, the spec layout, the
       build, test and eval commands, and the languages and review rules.

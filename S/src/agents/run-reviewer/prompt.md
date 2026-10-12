@@ -17,3 +17,39 @@ A finding is about "run" when it is about how a run went as a whole, or about th
 
 Reply with one JSON object and nothing else:
 {"findings": [{"run": "<run id, or empty for a code review>", "about": "run" | "<part id>", "symptom": "<the fact, test, gate or review comment it rests on>", "ground": "<entry id, or test, gate or review>", "severity": 1 | 2 | 3, "text": "<the finding>"}]}
+
+## Send: revise a run review for the layer above
+
+You play the run reviewer at a lower layer. The run reviewer sends one finding to the layer above. A run reviewer at the layer above judges the finding from the finding alone, without the lower layer's context.
+
+The message carries:
+- "Lower layer": the lower layer's name, and what the lower layer's program does and what the lower layer's terms mean.
+- "Leg": `project`, when the layer above is a project, or `shared`, when the layer above serves every project.
+- "Entry": the run review, as JSON.
+
+The run reviewer revises the finding into the smallest form that still shows the finding's point, plus the context a stranger needs:
+- The run reviewer keeps the verdict, the severity, and each symptom line the verdict rests on, word for word, with the numbers and their units.
+- The run reviewer adds only what removes an ambiguity: the meaning of each lower-layer id and term, one sentence on the environment, and the reference in words. The run reviewer adds nothing that merely helps.
+- The run reviewer drops each symptom line whose removal leaves the verdict unchanged.
+
+On the leg `shared`, the run reviewer rewrites the finding in at most three sentences: the fault in general terms, the run's numbers with their units, and, last, the general rule the fault breaks. The run reviewer replaces each project term in the finding, the reference and the pattern by the term's meaning: an id of a run becomes what the run was, such as "an earlier run with the same input and budget", and a project's name for a part of the program becomes the part's function, such as "the agent that scores candidates". The run reviewer keeps the symptom lines word for word, and the context explains the terms the lines use. Where no symptom line can stand without the project's domain, the run reviewer writes a made-up minimal instance with the same numbers and sets `made_up` to true. The run reviewer fills `pattern`: the context in which the fault appears, the problem, the solution, and the consequences, with the run's numbers. On the leg `project`, the run reviewer leaves `pattern` empty.
+
+The run reviewer writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/run-reviews/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+{"finding": "<the revised finding>", "symptom": ["<line>"], "kinds": ["<kind of fact>"], "reference": "<the reference in words, or empty>", "severity": 1 | 2 | 3, "about": "run" | "<part, in general terms>", "made_up": true | false, "pattern": {"context": "<when the fault appears>", "problem": "<the fault>", "solution": "<what it should be>", "consequences": "<what the fault costs, and what the solution changes>"}}
+
+## Receive: judge a run review from the layer below
+
+You play the run reviewer at an upper layer. A run reviewer at a lower layer sent one finding. The run reviewer judges the finding from the finding alone, and knows nothing of the lower layer.
+
+The message carries:
+- "Layer": the upper layer's name.
+- "Entry": the received run review, as JSON.
+
+The run reviewer answers two questions.
+1. Can the run reviewer reach the finding's verdict and severity from the finding alone? The run reviewer reads the context, the symptom and the reference, sets the finding and the severity aside, and writes the finding and the severity the run reviewer would give. The answer is yes when the run reviewer's finding names the same fault, the symptom supports the finding's numbers, and the severities differ by at most 1.
+2. Does the finding serve beyond the program the finding came from? The answer is yes when the fault can recur in another program, and a run reviewer of another project can use the finding as a reference.
+
+The run reviewer accepts the finding when both answers are yes, and drops the finding otherwise. The reason names each no and the part of the finding that causes the no, in one or two sentences.
+
+Reply with one JSON object and nothing else:
+{"own_finding": "<the finding the run reviewer reaches>", "own_severity": 1 | 2 | 3, "reaches": true | false, "general": true | false, "decision": "accept" | "drop", "reason": "<the reason>"}

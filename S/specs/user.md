@@ -22,6 +22,24 @@ Each action names the data types it reads (`data.md`) and what it writes.
   Writes proposal reviews.
 - **Give feedback and corrections (step 4).** Reads proposals, proposal reviews and decisions.
   Writes proposal reviews: textual feedback and numerical corrections.
+- **Send use cases and run grades upward.** Reads use cases and run grades at the user's layer.
+  Writes each revised use case into `S/outbox/use-cases/` and each revised run grade into
+  `S/outbox/run-grades/`.
+- **Receive use cases and run grades from below.** Reads each received use case or run grade
+  alone. Accepts or drops the entry, with a reason.
+
+## Upstream
+
+The user carries use cases and run grades upward, as `upstream.md` states for every role. The
+user sends a use case when the use case tests a behaviour that another program shares, and a run
+grade when the grade's reason judges such a behaviour. When the user revises a use case, the
+user keeps the seed's request, the reference and the rubric's checks and weights, and replaces
+the project's terms by their meaning. When the user revises a run grade, the user keeps the
+grade and the reason word for word, and states what the run was in words. When the user receives
+a use case, the user accepts the use case when the user can run the use case and grade a run
+from the seed, the reference and the rubric alone. When the user receives a run grade, the user
+accepts the grade when the user reaches a grade within 0.2 from the reason alone. Both
+acceptances also need an entry that serves programs beyond the program the entry came from.
 
 ## Running a use case
 

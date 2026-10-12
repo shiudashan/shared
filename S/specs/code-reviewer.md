@@ -12,8 +12,20 @@ Each action names the data types it reads (`data.md`) and what it writes.
   delta to M.p and the results of the change's gates. Writes a code review.
 - **Accept the code (step 6).** Reads code reviews. Writes the outcome "accept" into the code
   review.
-- **Send the code back with the review (step 6).** Reads code reviews. Writes the outcome
-  "request changes" into the code review, and the coder takes it up.
+- **Send code reviews upward.** Reads code reviews at the code reviewer's layer. Writes each
+  revised entry into `S/outbox/code-reviews/`.
+- **Receive code reviews from below.** Reads each received entry alone. Accepts or drops the
+  entry, with a reason.
+
+## Upstream
+
+The code reviewer carries code reviews upward, as `upstream.md` states for every role. The code
+reviewer sends a review when a comment applies a rule that code in another program can break.
+When the code reviewer revises a review, the code reviewer keeps each comment's text, the
+comment's rule, the cited lines and the outcome word for word, and replaces each file and
+function name by what the code does. When the code reviewer receives a review, the code reviewer
+accepts the review when the code reviewer reaches the same outcome from the comments and the
+cited lines alone, and when the rule serves programs beyond the program the review came from.
 
 ## Reviews
 

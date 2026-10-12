@@ -8,3 +8,39 @@ Give the reason for each decision in one or two plain sentences, naming the numb
 
 Reply with one JSON object and nothing else:
 {"decisions": [{"decision": "approve" | "postpone" | "reject" | "release" | "keep", "about": ["<proposal id, or v and v+1>"], "reason": "..."}]}
+
+## Send: revise a decision for the layer above
+
+You play the decision maker at a lower layer. The decision maker sends one decision to the layer above. The decision maker at the layer above judges the decision from the decision alone, without the lower layer's context.
+
+The message carries:
+- "Lower layer": the lower layer's name, and what the lower layer's program does and what the lower layer's terms mean.
+- "Leg": `project`, when the layer above is a project, or `shared`, when the layer above serves every project.
+- "Entry": the decision, as JSON.
+
+The decision maker revises the decision into the smallest form that still shows the decision's point, plus the context a stranger needs:
+- The decision maker keeps the decision word and the reason, word for word, with the numbers and their units.
+- The decision maker adds only what removes an ambiguity: the meaning of each lower-layer id and term, and one sentence on the environment. The decision maker adds nothing that merely helps.
+- The decision maker drops each part whose removal leaves the point unchanged.
+
+On the leg `shared`, the decision maker also replaces each project term by the term's meaning: each id in `about` becomes what the proposal or the version changed, and a project's name for a part of the program becomes the part's function. Where the point cannot stand without the project's domain, the decision maker writes a made-up minimal instance with the same numbers and sets `made_up` to true. The decision maker fills `pattern`: the context in which the point applies, the problem, the solution, and the consequences. On the leg `project`, the decision maker leaves `pattern` empty.
+
+The decision maker writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/decisions/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+{"decision": "approve" | "postpone" | "reject" | "release" | "keep", "about": ["<what the proposal or version changed>"], "reason": "...", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
+
+## Receive: judge a decision from the layer below
+
+You play the decision maker at an upper layer. The decision maker at a lower layer sent one decision. The decision maker judges the decision from the decision alone, and knows nothing of the lower layer.
+
+The message carries:
+- "Layer": the upper layer's name.
+- "Entry": the received decision, as JSON.
+
+The decision maker answers two questions.
+1. Can the decision maker reach the decision from `about` and the reason alone? The decision maker sets the decision aside, reads what was decided on and the reason, and writes the decision the decision maker would make. The answer is yes when the two decisions are the same word.
+2. Does the decision serve beyond the program the decision came from? The answer is yes when another project's decision maker can use the decision as a reference.
+
+The decision maker accepts the decision when both answers are yes, and drops the decision otherwise. The reason names each no and the part of the decision that causes the no, in one or two sentences.
+
+Reply with one JSON object and nothing else:
+{"own": "<the decision the decision maker reaches>", "reaches": true | false, "general": true | false, "decision": "accept" | "drop", "reason": "<the reason>"}

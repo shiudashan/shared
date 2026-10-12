@@ -11,6 +11,11 @@ gives its format. Each entry is one JSON file, named by its `id`.
 - `status`: where the entry stands. The values for each type are given below.
 - `decided` (when the status was set by someone other than the author): who set it, and when.
 - `made_up` (optional): `true` for an entry made up as an example, not taken from a run.
+- `pattern` (on an entry sent to `shared`): the entry in pattern form, `{"context", "problem",
+  "solution", "consequences"}`.
+
+`S/outbox/<type>/` holds the entries this layer's roles send to the layer above, revised for
+the layer above (`upstream.md`). Git keeps the outbox.
 
 Words are recorded as given. Words someone else wrote and the person approved are recorded with
 their author in `by` and the person in `decided`. They are never recorded as the person's words.
@@ -65,22 +70,34 @@ A role's actions are listed in the role's spec. An x marks a type the action rea
 | User | grade a run | x | x | x | | | | | |
 | User | review proposals (step 4) | | | | x | x | x | x | |
 | User | give feedback and corrections (step 4) | | | | | x | x | x | |
+| User | send use cases and run grades upward | x | | x | | | | | |
+| User | receive use cases and run grades from below | x | | x | | | | | |
 | Decision maker | approve change requests (step 4) | | | | x | x | x | x | |
 | Decision maker | release v+1 or keep v (step 7) | x | x | x | | | | x | x |
+| Decision maker | send decisions upward | | | | | | | x | |
+| Decision maker | receive decisions from below | | | | | | | x | |
 | Run reviewer | read run records (step 1) | | x | | | | | | |
 | Run reviewer | read code reviews (step 1) | | | | | | | | x |
 | Run reviewer | write a finding with its symptom (step 1) | | x | x | x | | | | |
 | Run reviewer | name the reference a symptom is judged against (step 1) | x | | | | | | | |
 | Run reviewer | grade a finding by severity (step 1) | | | x | x | | | x | |
+| Run reviewer | send run reviews upward | | | | x | | | | |
+| Run reviewer | receive run reviews from below | | | | x | | | | |
 | Planner | write change proposals from findings (step 2) | | | | x | x | | x | |
 | Planner | quantify upsides and downsides (step 2) | | | x | x | x | | | |
 | Planner | order the proposals (step 2) | | | | | x | | x | |
 | Planner | revise from reviews (steps 3, 4) | | | | | | x | x | |
+| Planner | send proposals upward | | | | | x | | | |
+| Planner | receive proposals from below | | | | | x | | | |
 | Proposal reviewer | review the top proposals (step 3) | | | | x | x | x | x | |
 | Proposal reviewer | give textual feedback (step 3) | | | | | | x | | |
 | Proposal reviewer | give numerical corrections (step 3) | | | | | x | | x | |
+| Proposal reviewer | send proposal reviews upward | | | | | | x | | |
+| Proposal reviewer | receive proposal reviews from below | | | | | | x | | |
 | Coder | write the change requests (step 5) | x | | | | x | | x | x |
 | Coder | pass each change request's gates (step 5) | x | x | | | | | | |
 | Code reviewer | review a diff (step 6) | | | | | x | | | x |
 | Code reviewer | accept the code (step 6) | | | | | | | | x |
 | Code reviewer | send the code back with the review (step 6) | | | | | | | | x |
+| Code reviewer | send code reviews upward | | | | | | | | x |
+| Code reviewer | receive code reviews from below | | | | | | | | x |

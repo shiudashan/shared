@@ -15,6 +15,21 @@ Each action names the data types it reads (`data.md`) and what it writes.
 - **Name the reference a symptom is judged against (step 1).** Reads use cases.
 - **Grade a finding by severity (step 1).** Reads run grades, run reviews and decisions. Writes
   the severity into the run review.
+- **Send run reviews upward.** Reads run reviews at the run reviewer's layer. Writes each
+  revised entry into `S/outbox/run-reviews/`.
+- **Receive run reviews from below.** Reads each received entry alone. Accepts or drops the
+  entry, with a reason.
+
+## Upstream
+
+The run reviewer carries run reviews upward, as `upstream.md` states for every role. The run
+reviewer sends a finding when the fault can recur in another program. When the run reviewer
+revises a finding, the run reviewer keeps the verdict, the severity and the symptom lines the
+verdict rests on, word for word, and states the reference in words. Toward `shared`, the run
+reviewer writes the finding's last sentence as the general rule. When the run reviewer receives
+a finding, the run reviewer accepts the finding when the run reviewer reaches the same fault,
+with a severity within 1, from the context and the symptom alone, and when the fault can recur
+in another program.
 
 ## Findings
 
@@ -67,4 +82,5 @@ the person keeps turning down is switched off (Google AutoCommenter).
 ## Sources
 
 `survey/survey-simulated-reviewer.md` and `survey/survey-improvement-step.md` in the repository
-`shared`.
+`shared`. Upstream: `upstream.md`, and `survey/survey-example-context.md` for the form of a sent
+run review.
