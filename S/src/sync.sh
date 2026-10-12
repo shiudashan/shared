@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Sync: brings shared's S into a project. The spec is shared/S/specs/sync.md.
 #
-#   S/sync.sh <project root>
+#   S/src/sync.sh <project root>
 #
-# A project copies this file from shared/S/sync.sh to <project>/S/sync.sh, customises the
+# A project copies this file from shared/S/src/sync.sh to <project>/S/src/sync.sh, customises the
 # settings below and its own steps, and runs it. The first run copies shared's files into the
 # project. A later run merges each change made in shared since the last run into the project's
 # copy, with a three-way merge (git merge-file). The project's own changes are never overwritten.
@@ -22,18 +22,18 @@ P=$(cd "${1:?usage: sync.sh <project root>}" && pwd)
 # --- Settings the project customises -------------------------------------------------------
 SHARED="$P/shared"            # shared, pinned as a git submodule
 DATA_DIR="S/data"             # the project's data folder, relative to the project root
-AGENTS_DIR="S/agents"         # the project's agents, relative to the project root
+AGENTS_DIR="S/src/agents"     # the project's agents, relative to the project root
 # What comes from where: "<path in shared>|<path in the project>". Folders end in "/".
 MAP=(
-  "S/sync.sh|S/sync.sh"
+  "S/src/sync.sh|S/src/sync.sh"
   "survey/|S/survey/"
   "S/specs/|S/specs/"
-  "S/CLAUDE.md|CLAUDE.md"
-  "S/.claude/settings.json|.claude/settings.json"
-  "S/.claude/hooks/|.claude/hooks/"
-  "S/.claude/skills/|.claude/skills/"
+  "S/config/CLAUDE.md|CLAUDE.md"
+  "S/config/.claude/settings.json|.claude/settings.json"
+  "S/config/.claude/hooks/|.claude/hooks/"
+  "S/config/.claude/skills/|.claude/skills/"
   "S/data/|$DATA_DIR/"
-  "S/agents/|$AGENTS_DIR/"
+  "S/src/agents/|$AGENTS_DIR/"
 )
 # Files joined with the project's own on the first run, rather than copied.
 JOINED=("CLAUDE.md" ".claude/settings.json")
@@ -107,21 +107,21 @@ sync_entry() {  # sync_entry <path in shared> <path in the project>
 # 1. The project's sync workflow. A later run first merges shared's changes to sync.sh into
 #    this file, and runs again from the merged file.
 if [ $RUN = later ] && [ -z "${SYNC_REEXEC:-}" ]; then
-  before=$(cksum < "$P/S/sync.sh")
-  sync_file "S/sync.sh" "S/sync.sh"
+  before=$(cksum < "$P/S/src/sync.sh")
+  sync_file "S/src/sync.sh" "S/src/sync.sh"
   if [ ${#CONFLICTS[@]} -gt 0 ]; then
-    echo "sync: S/sync.sh has conflicts with shared's new version; resolve them and run again" >&2; exit 1
+    echo "sync: S/src/sync.sh has conflicts with shared's new version; resolve them and run again" >&2; exit 1
   fi
-  if [ "$before" != "$(cksum < "$P/S/sync.sh")" ]; then
-    echo "sync: S/sync.sh took shared's changes; running the merged script"
-    SYNC_REEXEC=1 exec bash "$P/S/sync.sh" "$P"
+  if [ "$before" != "$(cksum < "$P/S/src/sync.sh")" ]; then
+    echo "sync: S/src/sync.sh took shared's changes; running the merged script"
+    SYNC_REEXEC=1 exec bash "$P/S/src/sync.sh" "$P"
   fi
 fi
 
 # 2.1 to 2.4. Documents, config, data and programs, in the order of MAP.
 for m in "${MAP[@]}"; do
   s=${m%%|*}; d=${m#*|}
-  [ "$d" = "S/sync.sh" ] && continue        # handled in step 1
+  [ "$d" = "S/src/sync.sh" ] && continue        # handled in step 1
   sync_entry "$s" "$d"
 done
 chmod +x "$P/.claude/hooks/"*.py 2>/dev/null || true

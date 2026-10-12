@@ -8,21 +8,21 @@ customisations.
 
 0. **Pin.** The project adds `shared` as a submodule:
    `git submodule add <shared's URL> shared`. Git records the pinned commit.
-1. **Make the project's sync workflow.** The project copies `shared/S/sync.sh` to
-   `<project>/S/sync.sh` and customises it: its paths, its data folder, and its own additional
+1. **Make the project's sync workflow.** The project copies `shared/S/src/sync.sh` to
+   `<project>/S/src/sync.sh` and customises it: its paths, its data folder, and its own additional
    steps. The workflow is a shell file of steps. A step that needs judgement is a `claude -p`
    call; a mechanical step is a plain command.
-2. **Run** `<project>/S/sync.sh <project>`. It does the following.
+2. **Run** `<project>/S/src/sync.sh <project>`. It does the following.
    1. **Documents.** `shared/survey/` goes to `<project>/S/survey/`. `shared/S/specs/` goes to
       `<project>/S/specs/`, for the project to customise.
-   2. **Config.** `shared/S/CLAUDE.md` goes to `<project>/CLAUDE.md`: the general rules are
+   2. **Config.** `shared/S/config/CLAUDE.md` goes to `<project>/CLAUDE.md`: the general rules are
       joined above the project's own sections, by a `claude -p` step.
-      `shared/S/.claude/settings.json` is merged with the project's own
-      `<project>/.claude/settings.json`, by a `claude -p` step. `shared/S/.claude/hooks/` goes
-      to `<project>/.claude/hooks/`, and `shared/S/.claude/skills/` to
+      `shared/S/config/.claude/settings.json` is merged with the project's own
+      `<project>/.claude/settings.json`, by a `claude -p` step. `shared/S/config/.claude/hooks/` goes
+      to `<project>/.claude/hooks/`, and `shared/S/config/.claude/skills/` to
       `<project>/.claude/skills/`.
    3. **Data.** Each `shared/S/data/<type>/` goes to `<project>/S/data/<type>/`.
-   4. **Programs.** Each `shared/S/agents/<role>/` goes to `<project>/S/agents/<role>/`. Then a
+   4. **Programs.** Each `shared/S/src/agents/<role>/` goes to `<project>/S/src/agents/<role>/`. Then a
       `claude -p` step per role customises the agent for the project: how to run M.f, the
       release rules, how to read the project's run records and standards, the spec layout, the
       build, test and eval commands, and the languages and review rules.
@@ -35,7 +35,7 @@ customisations.
 
 A later run starts when the project moves the pin: `git submodule update --remote shared`.
 
-- Step 1 merges any change to `shared/S/sync.sh` into the project's copy, and the merged script
+- Step 1 merges any change to `shared/S/src/sync.sh` into the project's copy, and the merged script
   runs.
 - Each change in shared since the last sync is merged into the project's copy with a three-way
   merge (`git merge-file`). The three versions are the file at the previously pinned commit, the
