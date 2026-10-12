@@ -3,10 +3,14 @@
 ## Context
 
 f4 was the last generation of f that the person, the Director, drove. From f5 on, an AI-driven
-development system does the development, and the person labels. Since the turn to f5, the work
-has gone out in many directions with no frame above them. This plan is that frame, read
-top-down. The plan aims at the grand vision, knowing the build will fall short of the vision for
-a while.
+development system does the development, and the person labels. This plan is the frame for that
+work, read top-down. The plan aims at the grand vision, knowing the build will fall short of the
+vision for a while.
+
+Content moves through four legs: sync from `shared` to a project (1), sync from the project to a
+generation (2), upstream from the generation to the project (3), and upstream from the project to
+`shared` (4). Leg 1 is built and has run on N2S. This revision adds what the surveys of
+upstreaming, data curation and example context found for legs 3 and 4.
 
 The disciplines throughout:
 - Known best practice first. Each detail names the practice it follows, and how closely.
@@ -26,16 +30,13 @@ not for end users.
 The constituent parts of S:
 - **The method:** the mantras, the habits, and the way any change is made, checked and
   recorded.
-- **The simulated users:** user simulators, which drive M.f on items from M's dataset and grade
-  each run.
-- **The automatic reviewers:** review on the person's behalf. The run reviewer judges runs, the
-  proposal reviewer reviews proposals, and the code reviewer reviews diffs.
-- **The automatic planner:** proposes changes to M.p and M.f.
-- **The automatic coder:** builds and checks the selected changes.
-- **The person's data:** labels, feedback and reasons, from which the simulated users and the
-  automatic reviewers learn.
+- **The roles**, each defined by its actions and played by a person, an AI or a program: the
+  user, the decision maker, the run reviewer, the planner, the proposal reviewer, the coder and
+  the code reviewer.
+- **The data** the roles act on: use cases, run records, run grades, run reviews, proposals,
+  proposal reviews, decisions and code reviews.
 
-S's parts may take the form of workflows, prompts or code.
+S's parts take the form of specs, config, data and programs.
 
 Each of S's parts sits in one of three categories, or layers:
 - **Pan-project:** shared by every M. Pan-project parts may include components offered
@@ -100,9 +101,11 @@ with whatever runs exist, and with none.
    exists, the reference the symptom is judged against. Each finding is graded by severity and
    enters the backlog.
 2. **Plan: propose.** From the findings, the planner writes change proposals. Each proposal
-   states the gain, the delta to M.p.v, the kind, the design, the tasks and the check. The planner
+   states the gain, the delta to M.p.v, the kind, the design, the tasks, the check, and its
+   upstream status: local to this layer, or a candidate for the layer above. The planner
    quantifies each proposal's upsides and downsides, and orders the proposals by them; the order
-   is the planner's alone. Proposals too slight to matter are not written.
+   is the planner's alone. Proposals too slight to matter are not written. (The upstream status
+   follows Debian's DEP-3 `Forwarded:` field and Android's `UPSTREAM:`/`ANDROID:` tags.)
 3. **Plan: review.** The proposal reviewers, agents separate from the planner, review the
    proposals at the top of the order, and give textual feedback and numerical corrections. The
    reviews go back to the planner, who refines the proposals: a propose-review loop. The loop
@@ -110,12 +113,11 @@ with whatever runs exist, and with none.
    Google design docs, KEPs with reviewers distinct from authors, PEP 1, Amazon's Type 1 and
    Type 2 decisions.)
 4. **Plan: decide.** The reviewed proposals reach the decision maker, usually the lead developer.
-   The simulated user reviews first, and the person, when present, reviews on top of the
-   simulated user. Their textual feedback and numerical corrections send the proposals back to
+   An AI playing the user reviews first, and the person, when present, reviews on top. Their textual feedback and numerical corrections send the proposals back to
    step 2: a propose-review-decide loop. To end the loop, the decision maker approves some
-   proposals as change requests for step 5. The decision maker's feedback and corrections become
+   proposals as change requests for step 5, confirming each one's upstream status. The decision maker's feedback and corrections become
    in-iteration data. (Rust, PEP 1, HashiCorp RFCs.)
-5. **Code, build and test.** The automatic coder writes the change requests on a branch, in
+5. **Code, build and test.** The coder writes the change requests on a branch, in
    order. Each change request passes its gates, the checks of section 2.1, or is abandoned.
    Changes that pass join a merge queue; a change that fails drops out, and the reason is logged.
    When the candidate v+1 and the current v are run side by side on the same items, code scores
@@ -125,8 +127,8 @@ with whatever runs exist, and with none.
    reviews the diff and either accepts the code or sends the code back to the coder with the
    review. Either way the review is written down, and step 1 reads it. (Google code review;
    GitHub's required review, approve or request changes.)
-7. **Release and deploy, to developers.** The decision maker, the simulated user first and the
-   person on top, releases v+1 or keeps v, with the code review in hand, and with the graded
+7. **Release and deploy, to developers.** The decision maker, with an AI playing the user first
+   and the person on top, releases v+1 or keeps v, with the code review in hand, and with the graded
    runs of the side-by-side comparison when there are any. A release that proves worse is
    reverted. Any runs go on to step 1. (Software Engineering at Google; LLVM; feature toggles;
    DORA on change approval.)
@@ -138,9 +140,8 @@ Two activities sit beside the loop rather than in its sequence, each placed wher
 appears:
 - **Retrospective** looks at how S itself worked. S holds one retrospective per loop, after
   monitor, and a postmortem at once after a release that proves worse. (Scrum; Google SRE.)
-- **Curation** is upstream (section 5) applied to labels: grades, feedback and priority orders
-  that prove useful beyond their layer move up, whenever needed, off the critical path.
-  (LangSmith and Langfuse datasets.)
+- **Curation** is upstream (section 5) applied to data: entries that prove useful beyond their
+  layer are collected, de-duplicated, cleansed and promoted, off the critical path (section 6).
 
 The person comes in at steps 4 and 7. No author reviews its own artifact. (ITIL's standard
 change; DORA on change approval.)
@@ -158,86 +159,121 @@ change; DORA on change approval.)
 The sources are MLflow runs, OpenTelemetry's GenAI agent spans, SLSA provenance, and Anthropic's
 split between transcript and outcome.
 
-## 3. The layers: one set of artifacts, customised downward, generalised upward
-
-Every artifact of S, documentation, prompts and source code alike, exists in each layer as a
-whole working copy, customised for that layer. Section 5 moves content between the layers.
+## 3. The layers on disk
 
 ```
-~/shared/                      github.com/shiudashan/shared              pan-project
-  survey/                      the surveys the method cites
-  S/                           S's artifacts: docs, prompts, code, workflows, feedback
+shared/                       the pan-project layer, a public GitHub repository
+  survey/                     the evidence the specs cite
+  S/specs/                    mantras, habits, building, versioning, step, data, sync, one per role
+  S/config/                   CLAUDE.md, .claude/ (settings.json, hooks/, skills/)
+  S/data/<type>/              one folder per data type, with its format and general samples
+  S/src/                      sync.sh, agents/<role>/ (each role's prompt, settings, code)
 
-N2S/                           the repository that holds the project
-  director-data/               the person's data
-  prototype2/                  the project M                              in-project
-    shared/                    shared, as a git submodule
-    S/                         S's artifacts, customised for M, with the base commit of shared
-    f0/ … f4/                  past generations, kept as records
-    f5/                        the current generation                     in-iteration
-      S/                       S's artifacts, customised for f5, with the base commit of M's S/
-      spec, code, VERSION, CHANGELOG
+N2S/                          the project
+  shared/                     shared, as a git submodule, pinned per project
+  CLAUDE.md, .claude/         the project's config
+  S/                          the in-project layer: survey/, specs/, data/, src/
+  prototype2/f5/              the current generation
+    S/                        the in-iteration layer, built by the project's own sync
 ```
 
-The in-project and in-iteration layers stay inside N2S until content is ready to upstream to
-`shared`. The file names under each `S/` are the same in every layer (section 4), so the three
-copies of one artifact can be compared line by line. Claude Code reads the `CLAUDE.md` of the
-layer it works in, which holds that layer's whole customised rules.
+Each layer holds whole working copies, customised for that layer. (Kustomize's base and
+overlays; Copier; git submodules.)
 
-## 4. The set of artifacts
+## 4. Sync, legs 1 and 2
 
-The names are ours.
+`shared/S/specs/sync.md` is the spec. A project pins `shared` as a submodule, copies `sync.sh`,
+customises it, and runs it. `sync.sh` copies the documents, then the config, then the data, then
+the programs, and reports. A later run merges `shared`'s changes into the project's copies with a
+three-way merge, keeping the project's own changes. Leg 2 is the project's own customised
+`sync.sh`, which builds a generation the same way from the project's layer.
 
-| Artifact | Content |
-|---|---|
-| `method.md` | How a change is made, checked and recorded: mantras, habits, building rules, versioning, section 2 |
-| `simulated-user.md` | How the simulated users draw items, drive M.f, grade runs, and defer to the person |
-| `reviewers.md` | How the run, proposal and code reviewers work, and how each review is grounded |
-| `planner.md`, `coder.md` | How the planner and the coder work |
-| `CLAUDE.md` | The working rules for Claude Code |
-| `prompts/` | The prompts of S's agents |
-| `src/` | The code of S's agents and workflows |
-| `feedback/<id>.json` | Reference entries: question or monitor (optional), symptom, feedback with its reason, status |
-| `items/<id>.json` | Labelled items: a seed, its proper answer, its difficulty, its source (project and iteration only) |
-| `workflows/sync`, `workflows/upstream` | The two workflows of section 5, themselves customised layer by layer |
+## 5. Upstream, legs 3 and 4
 
-## 5. The two workflows
+Source: `~/shared/survey/survey-upstreaming.md`. A change moves up a layer in five acts, all
+carried by existing roles (upstream-first practice at Red Hat and in Linux; Debian and Ubuntu
+patch flow; InnerSource):
 
-The same practice as git submodules: each layer pins the layer above, pulls its updates, and
-pushes its own changes back up.
+1. **Tag at birth.** The planner states each proposal's upstream status (step 2), and the
+   decision maker confirms it (step 4).
+2. **Track what is carried.** A program lists each layer's own changes with their status, as
+   Debian's patch tracker does. The run reviewer turns a candidate left unsent too long into a
+   finding.
+3. **Propose upward.** The planner writes the change as a proposal in the layer above, in that
+   layer's terms (section 7).
+4. **Review and accept upward.** The proposal runs through the upper layer's own step: its
+   proposal reviewers, its coder and code reviewer, and its decision maker. For `shared`, the
+   person sits on top.
+5. **Drop the local copy.** At the next sync down, the lower layer's coder takes the upstream
+   version and removes its own copy. A change the upper layer declines is marked local.
 
-- **Sync** works from pan-project down: `shared` into the project, then the project into the
-  generation. Each layer takes the layer above and customises it.
-- **Upstream** works from the generation up: the generation into the project, then the project
-  into `shared`, carrying the edits that serve the layer above.
+Upstream runs when a change is tagged, in a periodic sweep, and at the end of each generation,
+since in-iteration content lasts only that generation. Each upstream is followed at once by a
+sync down.
 
-Sync runs when a project or a generation starts. After that, upstream runs periodically,
-followed at once by sync.
+## 6. Data and curation
 
-## 6. The reviewers
+Source: `~/shared/survey/survey-data-curation.md`. Data moves up in five stages, on both legs:
 
-- **Code:** PR-Agent, on our router.
-- **Runs and proposals:** built by us, growing from f5's feedback mode, learning the person's
-  standard from examples with reasons, and measured by agreement with the person (Cohen's kappa,
-  set against the person's own consistency on 20–30 items re-labelled blind).
-  (`~/shared/survey/survey-ready-made-reviewers.md`, `survey-simulated-reviewer.md`.)
+1. **Collect.** Every entry records its author (person, AI or program), its origin (layer and
+   source id), a content hash, a status and a version. (LangSmith, Langfuse, Argilla, MLflow.)
+2. **Remove exact duplicates** by the hash of a normalised entry.
+3. **Cluster near duplicates** by direct pairwise comparison, at our data's size. Repeated
+   judgements of one item stay, as agreement; only true copies merge; a later decision of the
+   person retires an earlier one. (CROWDLAB; NeMo Curator; SemDeDup.)
+4. **Cleanse.** Automated flags of label errors, secrets and contamination go to a reviewer
+   before any change. (cleanlab; detect-secrets.)
+5. **Promote** through a review gate into the upper layer's dataset, as a git commit and tag.
+   Each data folder's README states its licence and what was withheld. (Datasheets for
+   Datasets.)
 
-## 7. Order of work
+While prototyping, the person's words go up as they are.
 
-1. Settle the open decisions.
-2. Set up the measurement of agreement with the person.
-3. Give `shared` its `S/` artifacts and its two workflows.
-4. Sync `prototype2` from `shared`, and f5 from `prototype2`, inside N2S.
-5. Run steps of S, with the person at steps 4 and 7.
+## 7. Context in upstreamed examples
 
-## 8. Open decisions
+Source: `~/shared/survey/survey-example-context.md`. An upstreamed example is the smallest thing
+that still shows its point, plus the context a stranger needs to read it:
+- **keep** the evidence and the verdict word for word: log lines, diff hunks, the grade and its
+  reason, numbers with units;
+- **add** only what removes an ambiguity: lower-layer ids and jargon replaced by what they mean,
+  one sentence of environment, the reference stated in words (decontextualisation; KCS;
+  contextual retrieval);
+- **drop** every piece whose removal leaves the verdict unchanged, largest first (delta
+  debugging), and long logs summarised with a link to the original.
 
-1. The step of section 2.2.
-2. Git submodules, or git subtree, for pinning each layer to the layer above.
-3. The first source of items.
-4. PR-Agent for code review.
-5. A time for the blind re-labelling of 20–30 items.
+The check: a reader with a fresh context, given only the example, reaches the same verdict. Our
+inference, after the interestingness test of test-case reducers. An example a few hundred tokens
+long fits; one that cannot stand alone stays in its layer.
+
+Leg 3 replaces what is specific to the generation and keeps the project's terms. Leg 4 also
+replaces the project's terms and writes the example in pattern form: context, problem, solution,
+consequences.
+
+## 8. The reviewers
+
+- **Code:** a ready-made reviewer (PR-Agent) on our router.
+- **Runs and proposals:** built by us, learning the person's standard from examples with
+  reasons, and measured by agreement with the person (Cohen's kappa, set against the person's
+  own consistency on items re-labelled blind). (`~/shared/survey/survey-ready-made-reviewers.md`,
+  `survey-simulated-reviewer.md`.)
+
+## 9. Order of work
+
+1. Leg 1, sync to N2S: built and run.
+2. Audit what leg 1 produced in N2S.
+3. Leg 4 machinery in `shared`: the upstream spec, the tracking program, the curation stages and
+   the context check, and the roles' upstream duties in their specs.
+4. Leg 2, then a step of S on f5, then legs 3 and 4.
+
+## 10. Open decisions
+
+1. Whether curation is a duty of the existing roles, as the upstreaming survey finds, or a role
+   of its own, a curator, as the curation survey infers.
+2. A middle home for content general to some projects but not all, as Kustomize components
+   allow.
+3. The first source of use cases.
+4. The blind re-labelling of 20–30 items.
 
 ## Metadata
 
-- Once approved, this plan replaces `prototype2/f5/PLAN.md`.
+- Revised on 2026-10-12 with the surveys of upstreaming, data curation and example context.
