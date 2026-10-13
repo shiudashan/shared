@@ -311,12 +311,12 @@ lacks context.
 
 1. Leg 1, sync from `shared` to N2S: built and run.
 2. Leg 4, upstream from N2S to `shared`: built and run.
-3. Legs 2 and 3, sync from N2S to prototype2 and upstream back: built as prototype2's customised
-   `sync.sh` and N2S's `upstream.sh`, and tried in a sandbox.
-4. The chain in `shared`: the hand-offs, triggers and runs in `step.md`, `step.sh` and
-   `chain.json` for all seven roles, and leg 2 in `sync.md` and `sync.sh`.
-5. Legs 1 and 2 again, carrying the chain down to N2S and prototype2; then a step of S on
-   prototype2, and legs 3 and 4 from it.
+3. The chain in `shared` (`step.md`, `step.sh`, `chain.json`), and legs 2 and 3.
+4. A trial on the toy project textkit, one project with two components, with no person in the
+   loop: legs 1 to 4, later syncs with three-way merges, and three steps on each component. The
+   gaps it found are fixed in `shared`. textkit's `main` stays at its starting state; each trial
+   keeps its records on its own branch, in textkit and in `shared`.
+5. N2S: later sync from `shared`, leg 2 to prototype2, and a step of S on prototype2.
 
 ## 10. Open decisions
 
