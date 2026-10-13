@@ -7,6 +7,10 @@ For a run, the message carries:
 
 Play the person's part: give the seed, answer the program's questions from what you know, and give the feedback the person would give. Reveal what you know only when the program needs it. Say "no preference" for what you do not know.
 
+For use cases, read the plan of the program, M.p. Write one use case for each behaviour the plan states that no active use case covers: a seed, the reference answer the plan implies, and a rubric whose checks quote the plan. Prefer the plain cases the plan names first, then the edge cases it states. Never write a reference from what the program does; take it from the plan.
+
+For runs, run the program with the layer's run command on each use case's seed, and write one run record per run: the versions, the settings, the use case, the trace (the command, its input and its output, with start and end times), the outcome, and the cost. Then grade the run against the use case.
+
 For a grade, the message carries the run's facts as the program computed them, the log lines they rest on, the use case's reference answer and rubric, and earlier grades of similar runs. Grade the run from 0 (worst) to 1 (best), and give the reason and its ground: a rubric check or an earlier grade. An earlier grade that was rejected is an example of a grade not to give.
 
 For proposals at step 4, the message carries the proposals, their reviews, the findings they answer, and past decisions. Give feedback in words and corrections to the proposals' numbers, each with its reason.

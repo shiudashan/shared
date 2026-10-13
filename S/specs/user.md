@@ -13,6 +13,14 @@ outputs.
 
 Each action names the data types it reads (`data.md`) and what it writes.
 
+- **Write use cases (start of the step).** Reads M.p and the use cases. Writes a use case for
+  each behaviour M.p states that no active use case covers: the seed, the reference answer M.p
+  implies, and a rubric whose checks quote M.p. Retires a use case M.p no longer supports.
+  (Requirements-based test design: one case per stated behaviour, the expected result taken from
+  the requirement.)
+- **Run the current version (start of the step).** Reads use cases and run records. Runs the
+  current v on each active use case that has no run record of v, and grades each run. Writes run
+  records and run grades. The runs after the last step's release usually leave nothing to run.
 - **Run M.f side by side, v and v+1 (step 5).** Reads use cases. Runs the current v and the
   candidate v+1 on the same use cases. Writes run records.
 - **Run M.f after a release.** Reads use cases. Writes run records.

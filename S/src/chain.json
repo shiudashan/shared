@@ -5,6 +5,10 @@
   "run_command": "",
   "claude_flags": ["--permission-mode", "acceptEdits"],
   "handoffs": [
+    {"name": "use-cases", "step": 1, "role": "user", "writes": ["use-cases"], "start": "auto",
+     "do": "Write a use case for each behaviour the plan states that no active use case covers, and retire any use case the plan no longer supports."},
+    {"name": "runs", "step": 1, "role": "user", "writes": ["run-records", "run-grades"], "start": "auto", "run": "true",
+     "do": "Run the current version on each active use case that has no run record of the current version, with the run command. Grade each run."},
     {"name": "monitor", "step": 1, "role": "run-reviewer", "writes": ["run-reviews"], "start": "auto",
      "do": "Read the run records and the code reviews not yet reviewed, and write findings."},
     {"name": "propose", "step": 2, "role": "planner", "writes": ["proposals"], "start": "auto",

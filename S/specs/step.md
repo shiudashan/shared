@@ -123,7 +123,12 @@ inside or outside M's dataset, may happen at any time. Their records go to step 
 
 ## Runs inside a step
 
-A step may include runs at two points, and may include none.
+A step starts with the use cases it can run. The user writes a use case for each behaviour M.p
+states that no use case covers yet, and runs the current version on each use case that has no
+run record of it. So a step that starts with no data, as the first step on a project developed
+by other means does, still gives the run reviewer runs to read.
+
+Inside the step, a step may include runs at two more points, and may include none.
 
 - **Before release, trial runs.** After the coder's step 5, a simulated developer (the user role)
   or the person makes one or more trial runs of the candidate v+1, side by side with v when both
@@ -143,6 +148,8 @@ entries into the layer's `S/data/<type>/`, and the next role takes them from the
 
 | Step | Role | Writes | Next |
 |---|---|---|---|
+| use cases | user | use cases | the user, for runs |
+| runs | user | run records, run grades | run reviewer |
 | 1. monitor | run reviewer | run reviews | planner |
 | 2. propose | planner | proposals | proposal reviewer |
 | 3. review | proposal reviewer | proposal reviews | planner, until the loop ends; then the user |
