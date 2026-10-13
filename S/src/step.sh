@@ -56,7 +56,10 @@ else
   [ "$START" -ge 0 ] || { echo "step: no hand-off \"$FROM\" in $CHAIN" >&2; exit 2; }
 fi
 LOG="$P/$STEPS_DIR/$ID"; mkdir -p "$LOG"
-echo "step: $ID in $P${FROM:+, from $FROM}"
+# The branch the step started on: the coder merges released changes into it.
+[ -f "$LOG/branch" ] || git -C "$P" rev-parse --abbrev-ref HEAD > "$LOG/branch" 2>/dev/null || echo "" > "$LOG/branch"
+BRANCH=$(cat "$LOG/branch")
+echo "step: $ID in $P${FROM:+, from $FROM}${BRANCH:+, on branch $BRANCH}"
 
 record() {  # record <hand-off> <event> <detail>: one line of the step's log
   jq -nc --arg h "$1" --arg e "$2" --arg d "$3" --arg t "$(date +%FT%T)" \
@@ -124,7 +127,7 @@ while [ "$h" -lt "$N" ]; do
     echo
     echo "## Now"
     echo
-    echo "You act as the $role at the hand-off \"$name\", step $(jq -r ".handoffs[$h].step" "$CHAIN") of S's step (S/specs/step.md), in the layer at $P. This step's id is $ID."
+    echo "You act as the $role at the hand-off \"$name\", step $(jq -r ".handoffs[$h].step" "$CHAIN") of S's step (S/specs/step.md), in the layer at $P. This step's id is $ID. The step started on the git branch \"$BRANCH\"."
     echo
     echo "Your task: $(jq -r ".handoffs[$h].do" "$CHAIN")"
     [ "$round" -eq 1 ] || echo "This is round $round of the propose-review loop."

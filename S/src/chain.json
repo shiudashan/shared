@@ -27,6 +27,8 @@
      "do": "Review the diff of each change the coder passed, and accept the code or request changes."},
     {"name": "release", "step": 7, "role": "decision-maker", "writes": ["decisions"], "start": "person",
      "do": "Release v+1 or keep v, with the code reviews in hand, and with the graded trial runs when there are any."},
+    {"name": "merge", "step": 7, "role": "coder", "writes": [], "start": "auto",
+     "do": "If the release decision released v+1, merge each passed change branch into the branch the step started on, keep each change's tag, and check that branch out. If it kept v, check out the branch the step started on and leave the change branches unmerged. Report the branch now checked out and its commit."},
     {"name": "runs-after-release", "step": 7, "role": "user", "writes": ["run-records", "run-grades"], "start": "auto", "run": "true",
      "do": "Run the released version on the active use cases, with the run command. Grade each run."}
   ]

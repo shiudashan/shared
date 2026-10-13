@@ -10,6 +10,10 @@ Each action names the data types it reads (`data.md`) and what it writes.
 - **Write the change requests (step 5).** Reads use cases, proposals, decisions and code
   reviews, together with M.p.v and M.f.v. Writes the changes on a branch, in order: each change
   in M.p first, then in M.f, following `building.md`.
+- **Merge a released change (step 7).** Reads the release decision. When the decision maker
+  releases v+1, the coder merges each passed change branch into the branch the step started on,
+  keeps each change's tag, and checks that branch out. When the decision maker keeps v, the coder
+  checks out the branch the step started on and leaves the change branches unmerged.
 - **Pass each change request's gates (step 5).** Reads use cases and run records. Runs the
   checks of the change's kind and records their results.
 - **Send a reusable program upward.** Reads the programs the coder wrote at the coder's layer,

@@ -113,7 +113,9 @@ whatever runs exist, and with none.
    GitHub's required review, approve or request changes.)
 7. **Release and deploy, to developers.** The decision maker releases v+1 or keeps v, with the
    code review in hand, and with the graded runs of the side-by-side comparison when there are
-   any. A release that proves worse is reverted. Any runs go on to step 1. (Software
+   any. The coder then merges each released change into the branch the step started on, from
+   the merge queue; a kept change stays on its branch. A release that proves worse is reverted.
+   Any runs go on to step 1. (Software
    Engineering at Google; LLVM; feature toggles; DORA on change approval.)
 
 A release goes to developers. A released M.f is expected to be fit for developers' runs.
@@ -157,7 +159,8 @@ entries into the layer's `S/data/<type>/`, and the next role takes them from the
 | 5. code | coder | the change, and its gates' results in the step's log | the user, for trial runs, or the code reviewer |
 | trial runs | user | run records, run grades | code reviewer |
 | 6. code review | code reviewer | code reviews | decision maker |
-| 7. release | decision maker | a release decision | the user, for runs after release, or the next step's run reviewer |
+| 7. release | decision maker | a release decision | coder |
+| merge | coder | the merge, in the step's log | the user, for runs after release, or the next step's run reviewer |
 | runs after release | user | run records, run grades | the next step's run reviewer |
 
 Each hand-off starts in one of two ways:
