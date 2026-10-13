@@ -11,6 +11,12 @@
 # already holds unchanged is skipped; a changed one is judged again; a retired one retires the
 # upper layer's copy. upstream.sh writes nothing to the lower layer.
 #
+# Clustering happens here, where the pieces of every lower layer meet. For each piece, a cheap
+# lexical score picks the few held entries of the same type most like it, and the receiving
+# agent sees them: it may judge the piece a duplicate of one, which is dropped, or a replacement
+# of one, which retires the held entry. (Staged deduplication: a cheap score finds candidate
+# pairs, and the expensive judgement runs only on them, as in NeMo Curator and SemDeDup.)
+#
 # Acceptance chains upward: when the upper layer has a layer above it (a "leg" in its
 # S/src/chain.json) and the receiving agent judged the piece general, the same role at the upper
 # layer sends the piece on, with the section "Send" of its prompt.md, into <upper>/S/outbox/<type>/.
@@ -58,6 +64,23 @@ receive_section() {  # receive_section <prompt.md> <words>: the "## Receive" sec
     on' "$1"
 }
 
+nearest() {  # nearest <piece> <dir>: the held entries of <dir> most like <piece>, best first
+  python3 -I - "$1" "$2" "${NEAREST:-3}" <<'PY'
+import sys, os, re, math, collections
+piece, d, k = sys.argv[1], sys.argv[2], int(sys.argv[3])
+words = lambda t: collections.Counter(re.findall(r"\w{3,}", t.lower()))
+a = words(open(piece).read())
+def cos(b):
+    n = sum(a[w] * b[w] for w in a)
+    return n / (math.sqrt(sum(v * v for v in a.values())) * math.sqrt(sum(v * v for v in b.values())) or 1)
+held = [os.path.join(d, f) for f in os.listdir(d) if f.endswith(".json")] if os.path.isdir(d) else []
+same = os.path.basename(piece)
+scored = sorted(((cos(words(open(f).read())), f) for f in held if os.path.basename(f) != same), reverse=True)
+for score, f in scored[:k]:
+    if score >= 0.2: print(f)
+PY
+}
+
 judge() {  # judge <type> <role> <words> <piece>: prints the receiving agent's JSON verdict
   local type=$1 role=$2 words=$3 piece=$4 prompt="$U/$AGENTS_DIR/$2/prompt.md" model section
   [ -f "$prompt" ] || { echo "no prompt at $prompt" >&2; return 1; }
@@ -72,6 +95,11 @@ judge() {  # judge <type> <role> <words> <piece>: prints the receiving agent's J
     echo
     echo "Entry:"
     cat "$piece"
+    local near; near=$(nearest "$piece" "$U/$DATA_DIR/$type")
+    if [ -n "$near" ]; then
+      echo; echo "Held entries:"
+      for f in $near; do echo; head -c 3000 "$f"; done
+    fi
   } > "$TMP/message"
   local args=(-p --tools "")
   [ "$model" = "no preference" ] || args+=(--model "$model")
@@ -118,6 +146,19 @@ for o in "${OWNERS[@]}"; do
           send_on "$role" "$words" "$dest" && SENT+=("$type/$id ($role)") || FAILED+=("$type/$id: the $role did not send it on")
         fi ;;
       drop)   DROPPED+=("$type/$id ($role): $reason") ;;
+      duplicate) DROPPED+=("$type/$id ($role): a duplicate of $(jq -r '.of // ""' <<< "$verdict"): $reason") ;;
+      supersedes)
+        of=$(jq -r '.of // ""' <<< "$verdict"); old="$U/$DATA_DIR/$type/$of.json"
+        mkdir -p "$(dirname "$dest")"; cp "$piece" "$dest"; ACCEPTED+=("$type/$id ($role), superseding $of: $reason")
+        if [ -n "$of" ] && [ -e "$old" ]; then
+          jq --arg by "$id" '.status = "retired" | .superseded_by = $by' "$old" > "$TMP/ret" && cp "$TMP/ret" "$old"
+          RETIRED+=("$type/$of, by $id")
+          up="$U/$OUTBOX_DIR/$type/$of.json"
+          [ ! -e "$up" ] || { jq --arg by "$id" '.status = "retired" | .superseded_by = $by' "$up" > "$TMP/ret" && cp "$TMP/ret" "$up"; }
+        fi
+        if [ -n "$UP_LEG" ] && [ "$(jq -r '.general // false' <<< "$verdict")" = true ]; then
+          send_on "$role" "$words" "$dest" && SENT+=("$type/$id ($role)") || FAILED+=("$type/$id: the $role did not send it on")
+        fi ;;
       *)      FAILED+=("$type/$id: the $role gave no decision: $verdict") ;;
     esac
   done
@@ -128,7 +169,7 @@ say "accepted, copied into $DATA_DIR/" ${ACCEPTED[@]+"${ACCEPTED[@]}"}
 say "dropped" ${DROPPED[@]+"${DROPPED[@]}"}
 say "skipped" ${SKIPPED[@]+"${SKIPPED[@]}"}
 say "sent on, into $OUTBOX_DIR/" ${SENT[@]+"${SENT[@]}"}
-say "retired, superseded below" ${RETIRED[@]+"${RETIRED[@]}"}
+say "retired, superseded" ${RETIRED[@]+"${RETIRED[@]}"}
 say "failed" ${FAILED[@]+"${FAILED[@]}"}
 echo "upstream: ${#ACCEPTED[@]} accepted, ${#DROPPED[@]} dropped, ${#SKIPPED[@]} skipped, ${#FAILED[@]} failed."
 [ ${#FAILED[@]} -eq 0 ]

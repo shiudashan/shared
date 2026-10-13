@@ -25,7 +25,7 @@ The decision maker revises the decision into the smallest form that still shows 
 
 On the leg `shared`, the decision maker also replaces each project term by the term's meaning: each id in `about` becomes what the proposal or the version changed, and a project's name for a part of the program becomes the part's function. Where the point cannot stand without the project's domain, the decision maker writes a made-up minimal instance with the same numbers and sets `made_up` to true. The decision maker fills `pattern`: the context in which the point applies, the problem, the solution, and the consequences. On the leg `project`, the decision maker leaves `pattern` empty.
 
-Before writing, read what the outbox `S/outbox/<type>/` already holds. When a piece there carries the same lesson as this entry, revise that piece, keeping its `id`, rather than writing a second one. When this entry supersedes a piece there, write this entry, and set the earlier piece's `status` to `retired` and its `superseded_by` to this entry's `id`. Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`.
+Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
 The decision maker writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/decisions/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
 {"decision": "approve" | "postpone" | "reject" | "release" | "keep", "about": ["<what the proposal or version changed>"], "reason": "...", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
@@ -44,6 +44,8 @@ The decision maker answers two questions.
 2. Does the decision serve beyond the program the decision came from? The answer is yes when an agent of any role, in another component (on the leg `project`) or another project (on the leg `shared`), can use the decision to do its own work better: to write use cases, review runs, plan, review, decide, code or review code. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The decision maker accepts the decision when both answers are yes, and drops the decision otherwise. The reason names each no and the part of the decision that causes the no, in one or two sentences.
+
+The message may also carry "Held entries": the few entries this layer already holds that are most like the received one. When the received entry teaches the same lesson as a held entry and adds nothing to it, answer `"decision": "duplicate"` with `"of": "<the held entry's id>"`. When it teaches the same lesson better, or corrects a held entry, answer `"decision": "supersedes"` with `"of"`; the held entry is then retired. Judge the two questions above first; a duplicate or a replacement must also pass them.
 
 Reply with one JSON object and nothing else:
 {"own": "<the decision the decision maker reaches>", "reaches": true | false, "general": true | false, "decision": "accept" | "drop", "reason": "<the reason>"}

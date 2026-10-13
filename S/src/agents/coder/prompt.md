@@ -25,7 +25,7 @@ The message carries:
 
 The coder replaces each path and name of the lower layer by the layer above's, keeps the program's tests, and drops each part that only the lower layer uses.
 
-Before writing, read what the outbox `S/outbox/changes/` already holds. When a change there does the same job, revise that change, keeping its `id`, rather than writing a second one. When this change supersedes one there, set the earlier change's `status` to `retired` and its `superseded_by` to this change's `id`.
+A program offered before is offered again under the same `id`.
 
 The coder writes the change into the lower layer's outbox, as one JSON file at `S/outbox/changes/<id>.json`, with a short `id` that names the program, in this form:
 {"id": "...", "title": "<what the change adds>", "why": "<the job the program does, and why the layer above needs the job>", "files": [{"path": "...", "content": "..."}], "check": "<the command that runs the tests>"}
@@ -44,6 +44,8 @@ The coder answers two questions.
 2. Does the program serve beyond the layer the program came from? The answer is yes when an agent of any role, in another component (on the leg `project`) or another project (on the leg `shared`), can use the program to do its own work better. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The coder accepts the change when both answers are yes, and drops the change otherwise. The reason names each no, in one or two sentences.
+
+The message may also carry "Held entries": the few entries this layer already holds that are most like the received one. When the received entry teaches the same lesson as a held entry and adds nothing to it, answer `"decision": "duplicate"` with `"of": "<the held entry's id>"`. When it teaches the same lesson better, or corrects a held entry, answer `"decision": "supersedes"` with `"of"`; the held entry is then retired. Judge the two questions above first; a duplicate or a replacement must also pass them.
 
 Reply with one JSON object and nothing else:
 {"reaches": true | false, "general": true | false, "decision": "accept" | "drop", "reason": "<the reason>"}

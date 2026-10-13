@@ -237,13 +237,15 @@ that needs context:
   submit pass, when the whole step shows what the piece was worth;
 - tracks what the downstream layer carries, and raises a candidate left unsent too long as a
   finding;
-- collects, removes duplicates and clusters near duplicates against what the sending agent has
-  already sent, in its outbox: one lesson is one piece, revised in place, and a piece that
-  supersedes another retires it (section 6);
+- sends each piece as it stands at the end of the step, with later corrections folded in, and
+  sends it again under the same id when it changes;
 - revises the content into the upstream layer's terms (section 7), and sends the piece.
 
 **The receiving agent** lacks the downstream layer's context, so the receiving agent judges each
-piece as received, and accepts or drops the piece. The receiving agent does not revise the piece.
+piece as received, and accepts or drops the piece. The receiving agent also clusters, since only
+the upstream layer sees the pieces of every downstream layer: it compares each piece with the few
+held entries a cheap score finds most like it, drops a duplicate, and retires a held entry the
+piece supersedes (section 6). The receiving agent does not revise the piece.
 At `shared`, the person decides on top. (The upstream maintainer judges a change on its own
 merits: the Linux kernel, Debian, InnerSource; Fedora keeps a person as the final decider.)
 
@@ -271,7 +273,10 @@ run reviews, the user for use cases and run grades, the planner for proposals, t
 reviewer for proposal reviews, the decision maker for decisions, the code reviewer for code
 reviews.
 
-The sending agent:
+Curation is split by where each act is cheap and possible. The sending agent collects and
+cleanses, because only it holds the context; the receiving agent removes duplicates and clusters,
+because only it sees every source, and it judges only the few close pairs a cheap score finds.
+The established acts:
 1. **collects** each entry with its author (person, AI or program), its origin (layer and source
    id), a content hash, a status and a version (LangSmith, Langfuse, Argilla, MLflow);
 2. **removes exact duplicates** by the hash of a normalised entry;

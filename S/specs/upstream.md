@@ -34,12 +34,9 @@ So the step ends with a submit pass (`step.md`): each role that wrote entries in
 them again with the whole step in view, and `step.sh` hands each candidate to the role's section
 "Send". The coder offers, in the same pass, each program it wrote that could serve elsewhere.
 
-The sending agent clusters against its own outbox before writing. A piece with the same lesson
-as one already in the outbox revises that piece, under the same id, instead of adding a second.
-A piece that supersedes one there retires the earlier piece: `"status": "retired"`, with
-`superseded_by`. A sent piece stands as it is at the end of the step, with the corrections of
-later reviews and decisions folded in, and names in `related` the entries it rests on or
-answers.
+A sent piece stands as it is at the end of the step, with the corrections of later reviews and
+decisions folded in, and names in `related` the entries it rests on or answers. A piece sent
+again goes under the same id.
 
 The sending agent revises each piece into the smallest form that still shows the piece's point,
 plus the context a stranger needs. The sending agent keeps the evidence and the verdict word for
@@ -60,7 +57,15 @@ alone. The receiving agent asks two questions: can the role reach the piece's ve
 piece alone, and could the piece help an agent of any role beyond the layer the piece came
 from. The receiving agent
 accepts the piece when both answers are yes, and drops the piece otherwise, with a reason. The
-receiving agent never revises a piece. The role's `prompt.md` at the upper layer holds the
+receiving agent never revises a piece.
+
+Clustering happens at the receiver, where the pieces of every lower layer meet. The receiving
+agent sees the few held entries most like the piece. When the piece adds nothing to one of them,
+the receiving agent judges it a duplicate, and the piece is dropped. When the piece teaches the
+same lesson better, or corrects a held entry, the receiving agent judges that it supersedes the
+entry: the piece is accepted, and the held entry is retired, `"status": "retired"` with
+`superseded_by`. (Staged deduplication: a cheap score finds candidate pairs, and the expensive
+judgement runs only on them; NeMo Curator, SemDeDup.) The role's `prompt.md` at the upper layer holds the
 receiving agent's instructions, in the section "Receive".
 
 ## upstream.sh
@@ -73,6 +78,8 @@ takes four steps.
 1. upstream.sh skips the piece when `<upper>/S/data/<type>/` already holds it unchanged. A
    changed piece is judged again, and replaces the held one when accepted. A retired piece
    retires the held copy, and the copy in the upper layer's outbox, without a judgement.
+   Otherwise upstream.sh picks, by a cheap lexical score, the few held entries of the same type
+   most like the piece, and passes them to the receiving agent with the piece.
 2. upstream.sh hands the piece to the receiving agent, with one `claude -p` call. The receiving
    agent accepts or drops the piece, with a reason.
 3. upstream.sh copies an accepted piece into `<upper>/S/data/<type>/`.

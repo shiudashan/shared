@@ -36,7 +36,7 @@ The user revises the use case into the smallest form that still shows the use ca
 
 On the leg `shared`, the user also replaces each project term by the term's meaning: a project's name for a part of the program becomes the part's function, and a path becomes what the file holds. Where the point cannot stand without the project's domain, the user writes a made-up minimal instance with the same numbers and sets `made_up` to true. The user fills `pattern`: the context in which the point applies, the problem, the solution, and the consequences. On the leg `project`, the user leaves `pattern` empty.
 
-Before writing, read what the outbox `S/outbox/<type>/` already holds. When a piece there carries the same lesson as this entry, revise that piece, keeping its `id`, rather than writing a second one. When this entry supersedes a piece there, write this entry, and set the earlier piece's `status` to `retired` and its `superseded_by` to this entry's `id`. Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`.
+Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
 The user writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/use-cases/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
 {"seed": "...", "reference": "...", "rubric": [{"check": "...", "weight": 0}], "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
@@ -55,6 +55,8 @@ The user answers two questions.
 2. Does the use case serve beyond the program the use case came from? The answer is yes when an agent of any role, in another component (on the leg `project`) or another project (on the leg `shared`), can use the use case to do its own work better: to write use cases, review runs, plan, review, decide, code or review code. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The user accepts the use case when both answers are yes, and drops the use case otherwise. The reason names each no and the part of the use case that causes the no, in one or two sentences.
+
+The message may also carry "Held entries": the few entries this layer already holds that are most like the received one. When the received entry teaches the same lesson as a held entry and adds nothing to it, answer `"decision": "duplicate"` with `"of": "<the held entry's id>"`. When it teaches the same lesson better, or corrects a held entry, answer `"decision": "supersedes"` with `"of"`; the held entry is then retired. Judge the two questions above first; a duplicate or a replacement must also pass them.
 
 Reply with one JSON object and nothing else:
 {"own": "<the grade the rubric gives the reference, and the check the user cannot apply, if any>", "reaches": true | false, "general": true | false, "decision": "accept" | "drop", "reason": "<the reason>"}
@@ -75,7 +77,7 @@ The user revises the run grade into the smallest form that still shows the run g
 
 On the leg `shared`, the user also replaces each project term by the term's meaning: an id of a run becomes what the run was and what the run produced, and a project's name for a part of the output becomes the part's function. Where the point cannot stand without the project's domain, the user writes a made-up minimal instance with the same numbers and sets `made_up` to true. The user fills `pattern`: the context in which the point applies, the problem, the solution, and the consequences. On the leg `project`, the user leaves `pattern` empty.
 
-Before writing, read what the outbox `S/outbox/<type>/` already holds. When a piece there carries the same lesson as this entry, revise that piece, keeping its `id`, rather than writing a second one. When this entry supersedes a piece there, write this entry, and set the earlier piece's `status` to `retired` and its `superseded_by` to this entry's `id`. Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`.
+Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
 The user writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/run-grades/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
 {"grade": 0, "reason": "...", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
@@ -94,6 +96,8 @@ The user answers two questions.
 2. Does the run grade serve beyond the program the run grade came from? The answer is yes when an agent of any role, in another component (on the leg `project`) or another project (on the leg `shared`), can use the run grade to do its own work better: to write use cases, review runs, plan, review, decide, code or review code. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The user accepts the run grade when both answers are yes, and drops the run grade otherwise. The reason names each no and the part of the run grade that causes the no, in one or two sentences.
+
+The message may also carry "Held entries": the few entries this layer already holds that are most like the received one. When the received entry teaches the same lesson as a held entry and adds nothing to it, answer `"decision": "duplicate"` with `"of": "<the held entry's id>"`. When it teaches the same lesson better, or corrects a held entry, answer `"decision": "supersedes"` with `"of"`; the held entry is then retired. Judge the two questions above first; a duplicate or a replacement must also pass them.
 
 Reply with one JSON object and nothing else:
 {"own": "<the grade the user reaches, from 0 to 1>", "reaches": true | false, "general": true | false, "decision": "accept" | "drop", "reason": "<the reason>"}
