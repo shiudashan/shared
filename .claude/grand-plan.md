@@ -246,8 +246,9 @@ merits: the Linux kernel, Debian, InnerSource; Fedora keeps a person as the fina
 **Acceptance chains upward.** Once the receiving agent accepts a piece, the receiving agent
 becomes the sending agent for that piece toward the next layer up, with its own layer's context.
 
-**Back down.** At the downstream layer's next sync, the downstream coder replaces the local copy
-with the accepted upstream version. A dropped piece stays in the downstream layer, marked local
+**Back down.** At the downstream layer's next sync, an accepted change replaces the local copy;
+an accepted piece of data comes back beside the local entry it was revised from, and the
+downstream layer keeps its own entry, with its context, marked as accepted. A dropped piece stays in the downstream layer, marked local
 and visible. (Ubuntu's sync drops a carried change; Android forbids hiding a rejected patch.)
 
 `step.sh` gives each role its first opportunity to send: when the role writes an entry tagged as

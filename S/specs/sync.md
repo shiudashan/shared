@@ -52,6 +52,9 @@ A later run starts when the project moves the pin: `git submodule update --remot
   both intents, and the report lists the file for review. A conflict the step cannot resolve is
   left marked in the file, and sync exits with status 1. A JSON file's three versions are put in
   one layout before the merge, so a tool that reformats the file causes no conflict.
+- An entry of data that the project sent up and the layer above accepted comes back down with
+  the same name. The project keeps its own version, which holds its own context, and marks it
+  `"upstream": "accepted"`.
 - A file shared removed is removed from the project if the project had not changed it, and kept
   and reported if it had. A file the project deleted stays deleted.
 

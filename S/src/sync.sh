@@ -90,6 +90,10 @@ sync_file() {  # sync_file <file in shared> <file in the project>
     mkdir -p "$(dirname "$dp")"; cp "$n" "$dp"; ADDED+=("$d"); return 0
   fi
   cmp -s "$dp" "$n" && return 0                                             # already the same
+  if [ $inb = 0 ] && [[ $d == "$DATA_DIR/"* ]]; then   # an entry this layer sent up, accepted above
+    jq '.upstream = "accepted"' "$dp" > "$TMP/acc" 2>/dev/null && cp "$TMP/acc" "$dp"
+    KEPT+=("$d (accepted by the layer above; this layer's version kept)"); return 0
+  fi
   if [ $RUN = first ] && is_joined "$d"; then
     ask "join $d" "Join shared's general version of $d, below, with this project's own $d. \
 For CLAUDE.md: put the general rules above the project's own sections, keep every project \
