@@ -57,7 +57,7 @@ BASE=""
 if [ -z "$BASE" ]; then RUN=first; else RUN=later; fi
 echo "sync: $RUN run, shared ${BASE:0:12}${BASE:+ -> }${NEW:0:12}, project $P"
 
-ADDED=() UPDATED=() MERGED=() CONFLICTS=() REMOVED=() KEPT=() SKIPPED=()
+ADDED=() UPDATED=() MERGED=() CONFLICTS=() RESOLVED=() REMOVED=() KEPT=() SKIPPED=()
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 
 ask() {  # ask <what> <prompt>: a judgement step, done by claude -p in the project root
@@ -105,6 +105,11 @@ $(cat "$n")" && MERGED+=("$d (joined)")
   fi
   if git merge-file -L project -L "shared ${BASE:0:12}" -L "shared ${NEW:0:12}" "$dp" "$b" "$n"; then
     MERGED+=("$d")
+  elif ask "resolve $d" "$d has merge conflicts between this project's version and shared's new \
+version, marked with <<<<<<< project, ======= and >>>>>>> shared. Resolve each conflict in place \
+so the result keeps both intents: the project's customisation and shared's change. Remove every \
+marker. Change nothing outside the conflicts." && ! grep -q '^<<<<<<< project' "$dp"; then
+    RESOLVED+=("$d")
   else
     CONFLICTS+=("$d")
   fi
@@ -169,6 +174,7 @@ say "updated" ${UPDATED[@]+"${UPDATED[@]}"}
 say "merged" ${MERGED[@]+"${MERGED[@]}"}
 say "removed" ${REMOVED[@]+"${REMOVED[@]}"}
 say "kept" ${KEPT[@]+"${KEPT[@]}"}
+say "conflicts resolved by claude -p; review them" ${RESOLVED[@]+"${RESOLVED[@]}"}
 say "conflicts, left marked" ${CONFLICTS[@]+"${CONFLICTS[@]}"}
 say "claude -p steps skipped" ${SKIPPED[@]+"${SKIPPED[@]}"}
 echo "sync: review, customise and commit the changes, with the moved pin of shared."

@@ -48,8 +48,10 @@ A later run starts when the project moves the pin: `git submodule update --remot
   file at the newly pinned commit, and the project's copy.
 - The project's customisations and data are never overwritten. A file the project changed and
   shared did not stays as it is. A file shared changed and the project did not takes shared's
-  version. Where both changed the same lines, the conflict is left marked in the file, and sync
-  exits with status 1.
+  version. Where both changed the same lines, a `claude -p` step resolves the conflict, keeping
+  both intents, and the report lists the file for review. A conflict the step cannot resolve is
+  left marked in the file, and sync exits with status 1. A JSON file's three versions are put in
+  one layout before the merge, so a tool that reformats the file causes no conflict.
 - A file shared removed is removed from the project if the project had not changed it, and kept
   and reported if it had. A file the project deleted stays deleted.
 
