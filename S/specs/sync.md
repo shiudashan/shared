@@ -55,6 +55,8 @@ A later run starts when the project moves the pin: `git submodule update --remot
 - An entry of data that the project sent up and the layer above accepted comes back down with
   the same name. The project keeps its own version, which holds its own context, and marks it
   `"upstream": "accepted"`.
+- A file that is new to the project on a later run, such as a new program, gets the first run's
+  customisation when it arrives: an agent, or the chain.
 - A file shared removed is removed from the project if the project had not changed it, and kept
   and reported if it had. A file the project deleted stays deleted.
 

@@ -189,11 +189,14 @@ the project's own form. Keep it short. Do not read obsolete/ or any archived cop
   && ADDED+=("CLAUDE.md") || true
 fi
 
-# 2.4 Programs: on the first run, each role's agent is customised for the layer.
-if [ $RUN = first ] && [ $LAYER = component ]; then
+# 2.4 Programs: each role's agent, and the chain, are customised for the layer when they arrive:
+#     on the first run, or on a later run that adds them.
+new_here() { [ $RUN = first ] && return 0; local a; for a in ${ADDED[@]+"${ADDED[@]}"}; do [ "$a" = "$1" ] && return 0; done; return 1; }
+if [ $LAYER = component ]; then
   for r in "$P/$AGENTS_DIR"/*/; do
     [ -d "$r" ] || continue
     role=$(basename "$r")
+    new_here "$AGENTS_DIR/$role/prompt.md" || continue
     ask "customise $AGENTS_DIR/$role" "The agent in $AGENTS_DIR/$role/ was customised for \
 $PROJECT, the project. Customise it further for $C, the component of $PROJECT in this folder. \
 Read its role spec in S/specs/$role.md, CLAUDE.md here and in the parent folder, README.md, \
@@ -207,16 +210,17 @@ refer to the current generation through that setting, so a new generation change
 only. Do not read obsolete/. Keep the role's actions and data, and its Send and Receive duties, \
 as the spec gives them; $C's outbox is S/outbox/<type>/, and $PROJECT receives from it." || true
   done
-  ask "customise S/src/chain.json" "Customise S/src/chain.json, the chain of S's step for $C, a \
+  new_here "S/src/chain.json" && ask "customise S/src/chain.json" "Customise S/src/chain.json, the chain of S's step for $C, a \
 component of the project $PROJECT (S/specs/step.md, \"Triggering and chaining\"). Set \"layer\" \
 to two or three sentences a stranger needs: what $C is, and what its own terms mean. Set \"leg\" \
 to \"project\", the leg to the layer above. Set \"run_command\" to the command, run from this \
 folder, that runs $C's current generation $GEN on one use case. Leave the hand-offs and every \
 other setting as they are." || true
-elif [ $RUN = first ]; then
+else
   for r in "$P/$AGENTS_DIR"/*/; do
     [ -d "$r" ] || continue
     role=$(basename "$r")
+    new_here "$AGENTS_DIR/$role/prompt.md" || continue
     ask "customise $AGENTS_DIR/$role" "Customise the agent in $AGENTS_DIR/$role/ for this \
 project. Read its role spec in S/specs/$role.md, the project's CLAUDE.md, and the project's own \
 specs and code. Edit prompt.md and settings.json in place so the agent knows, as far as the role \
@@ -226,7 +230,7 @@ single prototype or generation, and point to no folder inside one: the project's
 what is specific to a generation. Do not read obsolete/ or any archived copy. Keep the role's \
 actions and data as the spec gives them." || true
   done
-  ask "customise S/src/chain.json" "Customise S/src/chain.json, the chain of S's step for this \
+  new_here "S/src/chain.json" && ask "customise S/src/chain.json" "Customise S/src/chain.json, the chain of S's step for this \
 project (S/specs/step.md, \"Triggering and chaining\"). Set \"layer\" to two or three sentences \
 a stranger needs: what the project is, and what its own terms mean. Set \"leg\" to \"shared\", the \
 leg to the layer above. Set \"run_command\" to the command that runs the project's program on one \
