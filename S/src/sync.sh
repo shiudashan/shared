@@ -118,6 +118,13 @@ sync_file() {  # sync_file <file in shared> <file in the project>
     jq '.upstream = "accepted"' "$dp" > "$TMP/acc" 2>/dev/null && cp "$TMP/acc" "$dp"
     KEPT+=("$d (accepted by the layer above; this layer's version kept)"); return 0
   fi
+  if [ $RUN = first ] && is_joined "$d" && [[ $d == *.json ]]; then   # JSON: joined by jq
+    # The project's settings win; each hook list keeps the project's entries and adds shared's.
+    jq -s '.[0] as $s | .[1] as $p | ($s * $p) | .hooks = ((($s.hooks // {}) | keys) + (($p.hooks // {}) | keys) | unique
+      | map({key: ., value: ((($p.hooks // {})[.] // []) + (($s.hooks // {})[.] // []) | unique)}) | from_entries)
+      | if .hooks == {} then del(.hooks) else . end' "$n" "$dp" > "$TMP/joined" && cp "$TMP/joined" "$dp" && MERGED+=("$d (joined)")
+    return 0
+  fi
   if [ $RUN = first ] && is_joined "$d"; then
     ask "join $d" "Join shared's general version of $d, below, with this project's own $d. \
 For CLAUDE.md: put the general rules above the project's own sections, keep every project \

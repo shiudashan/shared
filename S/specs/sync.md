@@ -18,7 +18,9 @@ customisations.
    2. **Config.** `shared/S/config/CLAUDE.md` goes to `<project>/CLAUDE.md`: the general rules are
       joined above the project's own sections, by a `claude -p` step.
       `shared/S/config/.claude/settings.json` is merged with the project's own
-      `<project>/.claude/settings.json`, by a `claude -p` step. `shared/S/config/.claude/hooks/` goes
+      `<project>/.claude/settings.json` by `jq`: the project's settings win, and each hook list
+      keeps the project's entries and adds shared's. (Claude Code keeps `claude -p` from writing
+      inside `.claude/`, and a JSON merge needs no judgement.) `shared/S/config/.claude/hooks/` goes
       to `<project>/.claude/hooks/`, and `shared/S/config/.claude/skills/` to
       `<project>/.claude/skills/`.
    3. **Data.** Each `shared/S/data/<type>/` goes to `<project>/S/data/<type>/`. Each
