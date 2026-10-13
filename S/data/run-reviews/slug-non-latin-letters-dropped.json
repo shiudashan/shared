@@ -1,0 +1,21 @@
+{
+  "id": "slug-non-latin-letters-dropped",
+  "by": "run-reviewer, played by claude-opus-5-5",
+  "status": "open",
+  "finding": "A command-line tool that turns each title line on standard input into a URL slug on standard output (lower-case words joined by hyphens) drops letters outside the Latin alphabet instead of keeping them. On 2 Greek titles holding 10 letters, it kept 0 of the 10 letters: \"Ωμέγα\" gave an empty line and \"Δέλτα 4\" gave \"4\", where the tool's specification expects \"ωμεγα\" and \"δελτα-4\". A filter meant to remove punctuation and spaces must decide by whether a character is a letter or a digit in any script, not by membership in one alphabet.",
+  "symptom": [
+    "stdin: \"Ωμέγα\\nΔέλτα 4\\n\"",
+    "stdout: \"\\n4\\n\""
+  ],
+  "kinds": ["input", "output"],
+  "reference": "The tool's specification, in its use case on letters outside the Latin alphabet, gives the expected output for this input as the two lines \"ωμεγα\" and \"δελτα-4\": every letter kept, lower-cased and without its accent.",
+  "severity": 3,
+  "about": "run",
+  "made_up": false,
+  "pattern": {
+    "context": "A text tool keeps some characters and drops the rest, for instance to build a URL slug from a title, and its input can contain letters of any script.",
+    "problem": "The keep rule names one alphabet (such as a to z) instead of the class \"letter or digit\", so every letter of another script is dropped as if it were punctuation: on 2 Greek titles with 10 letters, 0 letters survived, one title became an empty line and the other became only its digit.",
+    "solution": "Keep a character when it is a letter or a digit in any script; lower-case it and remove its accent, and drop only what is neither letter nor digit. The 2 titles then give \"ωμεγα\" and \"δελτα-4\".",
+    "consequences": "With the fault, titles in other scripts lose all their words and silently collapse to empty or digit-only output, so distinct titles collide; no error is raised. With the solution, every script keeps its words, at the cost of slugs that are no longer plain ASCII."
+  }
+}

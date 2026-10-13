@@ -1,0 +1,15 @@
+{
+  "id": "slug-fold-accents-before-filtering-decision-2026-10-13-111445",
+  "by": "decision-maker, played by claude-opus-5-5",
+  "status": "final",
+  "decision": "approve",
+  "about": ["A fix to a command-line tool that turns titles into URL slugs: before removing every character outside a-z and 0-9, the code first splits each accented letter into the plain letter and its accent mark, so \"Café\" gives \"cafe\" instead of \"caf\"."],
+  "reason": "Approved second [of the 2 fixes approved in this step], with the design correction both reviewers [of the proposal] made: after NFKD [Unicode decomposition, which splits an accented letter into the plain letter and a combining accent mark], drop only the combining marks, so ß, ø and ł [letters with no such split] still become a hyphen as today. It closes 1 severity-3 finding [an observed defect, on a scale from 1, costs little, to 3, makes the result unusable: accented letters were dropped whole] and lifts the test case with titles \"Café\", \"Crème Brûlée\" and \"HELLO World\" from 0.3 to 1.0 [its grade, on a scale from 0 to 1]. The 2 classes of changed output, accented letters and compatibility forms [characters such as the ligature \"ﬁ\" that decompose to plain letters], both move to what the tool's specification already promises.",
+  "made_up": false,
+  "pattern": {
+    "context": "A program reduces text to an allowlist of plain characters, such as a-z and 0-9, by removing or replacing everything else, and its specification promises that accented letters keep their base letter.",
+    "problem": "The filter treats an accented letter as one foreign character and drops it whole, so \"Café\" loses its last letter. Folding accents by a blanket rule risks changing letters that have no plain form.",
+    "solution": "Before filtering, apply NFKD decomposition and drop only the combining marks it produces. Letters with no decomposition, such as ß, ø and ł, pass to the filter unchanged and are handled as before.",
+    "consequences": "Accented letters and compatibility forms such as the ligature \"ﬁ\" now yield their plain letters, as the specification promises. Output for letters with no decomposition stays the same."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "slug-keep-letters-of-every-script",
+  "by": "planner, played by claude-opus-5-5",
+  "status": "proposed",
+  "findings": [
+    "Letters outside the Latin alphabet are dropped, not kept as letters (severity 3, open): Greek letters are dropped: \"Ωμέγα\" gives an empty line and \"Δέλτα 4\" gives \"4\". Every letter should stay, lower-cased and without its accent: \"ωμεγα\" and \"δελτα-4\"."
+  ],
+  "gain": "The tool's specification says \"letters\", but the code's filter names the Latin alphabet: it turns everything outside a-z and 0-9 into a hyphen. So every letter of another script is lost, and so is every Latin letter with no plain form, such as ß, ø and ł. An earlier finding, that accented letters were lost, had the same fault: the code's set of letters is narrower than the specification's. The filter should ask Unicode whether a character is a letter or a digit, not list the ASCII ones. Then the run of a use case of 2 Greek titles, graded 0 to 1 against reference output, goes from grade 0.1 to 1.0, with 2 of 2 output lines matching the reference against 0 today.",
+  "kind": "fix",
+  "delta": "None. The tool's specification already states the behaviour: letters are lower-cased, accented letters lose their accents, and every run of characters that are not letters or digits becomes one hyphen. The rules do not limit letters to one script. The code falls short of the specification, so the specification stays as it is.",
+  "design": "The tool is a command-line filter that turns each title read from standard input into a URL slug, in Python 3.9 with the standard library only. The slug function replaces the filter r\"[^a-z0-9]+\" with r\"[\\W_]+\". In Python 3, \\w on a str matches every character for which str.isalnum() is true, plus the underscore, so [\\W_] matches exactly the characters that are not letters or digits in any script. Decomposition, dropping combining marks, and lower-casing still run first, so \"Ωμέγα\" becomes \"ωμεγα\". The length cut is unchanged. One test is added for letters outside the Latin alphabet.",
+  "tasks": [
+    "Add a test: slug(\"Ωμέγα\") == \"ωμεγα\", slug(\"Δέλτα 4\") == \"δελτα-4\", and slug(\"Straße Haus\") == \"straße-haus\".",
+    "Run the tests on the current version v and see the new test fail.",
+    "Replace the filter r\"[^a-z0-9]+\" with r\"[\\W_]+\" in the slug function.",
+    "Run the tests on the changed version v+1, record v+1 as the version and in the change log, and commit code, tests and version as one tagged commit."
+  ],
+  "check": "Run the tool's unit tests. On v, the 1 new test fails and the 6 existing tests pass. On v+1, all 7 pass. The run of the Greek-titles use case on v+1 grades 1.0, and the run of the accented-Latin-titles use case stays at 1.0. Measured on v with the new filter: \"Ωμέγα\" gives \"ωμεγα\", \"Δέλτα 4\" gives \"δελτα-4\", \"Привет мир\" gives \"привет-мир\", \"Crème Brûlée\" still gives \"creme-brulee\", \"Hello, World!\" still gives \"hello-world\".",
+  "upsides": [
+    {"what": "findings closed", "amount": 1, "unit": "finding of severity 3"},
+    {"what": "grade gained on the run of the Greek-titles use case", "amount": 0.9, "unit": "grade points (0.1 to 1.0)"},
+    {"what": "fault class removed", "amount": 1, "unit": "class: the code's set of letters narrower than the spec's, which caused the earlier accented-letters finding and this finding"},
+    {"what": "spec rules that gain a test beyond the Latin alphabet", "amount": 1, "unit": "rule (letters or digits are kept)"}
+  ],
+  "downsides": [
+    {"what": "classes of input whose output changes", "amount": 2, "unit": "classes: letters of other scripts (Greek, Cyrillic, CJK and others), and Latin letters with no decomposition (ß, ø, ł, æ: \"Straße Haus\" goes from \"stra-e-haus\" to \"straße-haus\"); both new outputs are the ones the spec promises"},
+    {"what": "slugs that may now hold non-ASCII characters", "amount": 1, "unit": "property lost: a reader that assumed slugs are ASCII-only no longer holds; the spec never promised it"},
+    {"what": "code changed", "amount": 1, "unit": "line in the tool's source file"},
+    {"what": "tests added", "amount": 1, "unit": "test"}
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A specification names a character class in words, such as \"letters\" or \"digits\", and the code implements the class with an explicit list, such as the ranges a-z and 0-9.",
+    "problem": "The list is narrower than the word. Every character the word covers but the list omits, such as letters of other scripts or Latin letters with no plain form, is treated as a non-member and lost, and each new kind of input surfaces as a separate finding of the same fault.",
+    "solution": "Ask the Unicode character database for the class, through the language's Unicode-aware test (in Python 3, [\\W_] for \"not a letter or digit\"), instead of listing members. Keep any earlier normalization steps in front of the test.",
+    "consequences": "The code's class matches the specification's word, so the whole fault class closes in one change. Output changes for every input class the list omitted, and output may now hold non-ASCII characters, which breaks any reader that assumed ASCII without the specification promising it."
+  }
+}

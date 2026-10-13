@@ -1,0 +1,36 @@
+{
+  "id": "slug-fold-accents-before-filtering",
+  "by": "planner, played by claude-opus-5-5",
+  "status": "proposed",
+  "findings": [
+    "Accented letters are dropped, not stripped of their accents (severity 3). \"Café\" gives \"caf\" and \"Crème Brûlée\" gives \"cr-me-br-l-e\"; the spec wants \"cafe\" and \"creme-brulee\"."
+  ],
+  "gain": "The tool removes every character outside a-z and 0-9 before anything tries to turn it into one of them, so an accented letter is lost with its accent. Folding each letter to its plain form first, by Unicode decomposition, keeps the letter and drops only the accent. The run of a use case of 3 titles with capitals and accented letters, graded 0 to 1 against reference output, goes from grade 0.3 to 1.0; its 3 output lines all match the reference, against 1 of 3 today.",
+  "kind": "fix",
+  "delta": "None. The tool's specification already states the behaviour: accented letters lose their accents, \"Café\" becomes \"cafe\". The code falls short of the specification; the specification stays as it is.",
+  "design": "The tool is a command-line filter that turns each title read from standard input into a URL slug, in Python 3.9 with the standard library only. The slug function first decomposes the title with unicodedata.normalize(\"NFKD\"), which splits an accented letter into the letter and its accent mark, and then keeps only the ASCII characters, which drops the marks. Lower-casing and the existing filter follow unchanged. Characters with no plain ASCII form are dropped, as today.",
+  "tasks": [
+    "Add a test: slug(\"Café\") == \"cafe\", and slug(\"Crème Brûlée\") == \"creme-brulee\".",
+    "Run the tests on the current version v and see the new test fail.",
+    "Add the decomposition and the ASCII step at the start of the slug function.",
+    "Run the tests on the changed version v+1, record v+1 as the version and in the change log, and commit code, tests and version as one tagged commit."
+  ],
+  "check": "Run the tool's unit tests. On v, the 1 new test fails and the 3 existing tests pass. On v+1, all 4 pass. The run of the accented-titles use case on v+1 grades 1.0.",
+  "upsides": [
+    {"what": "findings closed", "amount": 1, "unit": "finding of severity 3"},
+    {"what": "grade gained on the run of the accented-titles use case", "amount": 0.7, "unit": "grade points (0.3 to 1.0)"},
+    {"what": "spec rules that gain a test", "amount": 1, "unit": "rule (accented letters lose their accents)"}
+  ],
+  "downsides": [
+    {"what": "output change for titles with accented letters", "amount": 1, "unit": "class of inputs; the new output is the one the spec already promised"},
+    {"what": "code changed", "amount": 2, "unit": "lines in the tool's source file"},
+    {"what": "tests added", "amount": 1, "unit": "test"}
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A text tool keeps only characters from a narrow allowed set, such as a-z and 0-9, and its input contains letters written with accents or other marks.",
+    "problem": "The filter runs on the raw input, so a letter outside the set is removed whole, and the letter is lost together with its accent.",
+    "solution": "Before filtering, decompose the text with Unicode NFKD, which splits each accented letter into its base letter and its marks, and drop the marks. The filter then sees the base letter and keeps it.",
+    "consequences": "Accented letters survive as their plain letters, so output for that class of inputs changes. Characters with no decomposition into the allowed set are still removed. The change is one step before the filter and needs no new dependency."
+  }
+}

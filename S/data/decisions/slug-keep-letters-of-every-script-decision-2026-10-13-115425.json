@@ -1,0 +1,15 @@
+{
+  "id": "slug-keep-letters-of-every-script-decision-2026-10-13-115425",
+  "by": "decision-maker, played by claude-opus-5-5",
+  "status": "final",
+  "decision": "approve",
+  "about": ["A fix to the code of a command-line tool that turns titles into URL slugs, with no change to its specification: the code kept only a-z and 0-9 and turned every other character into a hyphen; it now keeps every character that is a letter or digit in any script, so \"Straße Haus\" gives \"straße-haus\" instead of \"stra-e-haus\", and \"Ωμέγα\" gives \"ωμεγα\" instead of an empty slug."],
+  "reason": "Approved as written; both reviews [of the fix] approve with no corrections. A one-line change closes 1 severity-3 finding [an observed defect, on a scale from 1, costs little, to 3, makes the result unusable: letters outside a-z were dropped] and lifts the test case with titles in other scripts from 0.1 to 1.0 [its grade, on a scale from 0 to 1, by how many output lines match a reference slug]. The 2 classes of changed output [letters of other scripts, such as Greek, Cyrillic and CJK, and Latin letters with no plain form, such as ß, ø and ł] both move to what the tool's specification already promises, since its rule says letters, not Latin letters, and the format and the maximum-length option stay the same.",
+  "made_up": false,
+  "pattern": {
+    "context": "A specification states a rule over a general class, such as \"letters\", and the code implements it with a narrower test, such as the range a-z.",
+    "problem": "Inputs inside the class but outside the narrow test are mangled or lost, while the specification reads as correct, so the gap shows only on those inputs.",
+    "solution": "Change the code's test to the class the specification names, such as the standard library's is-letter-or-digit check, and leave the specification as it is.",
+    "consequences": "Only output for inputs that were wrong changes, and it moves to what the specification already promised. Output format and options stay the same, so callers that relied on the specification need no change."
+  }
+}
