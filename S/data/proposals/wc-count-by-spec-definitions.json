@@ -1,0 +1,46 @@
+{
+  "id": "wc-count-by-spec-definitions",
+  "findings": [
+    "characters-counted-as-bytes (severity 3): the tool counts characters as UTF-8 bytes, where its specification defines them as Unicode code points.",
+    "words-split-at-white-space (severity 3): the tool splits words at white space, where its specification defines a word as a run of letters, digits, apostrophes and hyphens."
+  ],
+  "gain": "Both counting faults share one cause: the counting function, which returns (lines, words, characters), uses language stand-ins (split at white space for words, the UTF-8 byte length for characters) instead of the specification's definitions. Counting by the definitions themselves fixes 6 of the 18 use cases: 5 move from grade 0.1 to 1.0 and the use case on words with non-ASCII letters moves from 0.7 to 1.0. The grade total rises from 12.9 to at least 17.7 of 18.",
+  "kind": "fix",
+  "delta": "None. The specification already defines Words and Characters; the prototype departs from them. The one choice the specification leaves open, that a combining mark belongs to the word it follows, is recorded as one line in the project's record of open choices.",
+  "design": "The counting function counts characters as the number of code points. It counts words as runs of characters that are letters (Unicode category L*), digits (N*), apostrophes or hyphens, with a combining mark (M*) joining the run it follows, using the standard library's Unicode database. One test per definition, with non-ASCII text. Released as prototype version 0.3.",
+  "tasks": [
+    "Record the combining-mark choice.",
+    "Add the tests of the check and see the five deciding tests fail on 0.0.",
+    "Rewrite the counting function from the two definitions.",
+    "Run the tests; all pass.",
+    "Set the version to 0.3 and commit the choice, code and tests together."
+  ],
+  "check": "Five tests that fail on 0.0 and pass on 0.3: count('café') == (0, 1, 4); count('😀\\n') == (1, 0, 2); count('cafe\\u0301\\n') == (1, 1, 6); count('red,green;blue.\\n') == (1, 3, 16); count('snake_case\\n') == (1, 2, 11). One guard that passes on both: count(\"well-known, isn't it?\")[1] == 3. The existing 3 tests still pass. Rerun of the 18 use cases: the 6 named in gain reach grade 1.0; the use case that grades whether every behaviour the specification names has a test rises from 0.7, since the new tests cover characters as code points and punctuation between words; the other 11 stay at their grade.",
+  "upsides": [
+    {"what": "use cases with wrong output fixed", "amount": 6, "unit": "use cases of 18"},
+    {"what": "grade total", "amount": 4.8, "unit": "points gained at least, 12.9 to at least 17.7 of 18"},
+    {"what": "severity-3 findings closed", "amount": 2, "unit": "findings"}
+  ],
+  "downsides": [
+    {"what": "code changed in the counting function", "amount": 10, "unit": "lines, about"},
+    {"what": "specification sentences added", "amount": 0, "unit": "sentences"},
+    {"what": "lines added to the record of open choices", "amount": 1, "unit": "line"},
+    {"what": "words per character checked against the Unicode database, slower than the built-in white-space split on large input", "amount": 1, "unit": "pass over the text in Python instead of in C"}
+  ],
+  "context": "The tool reads a text on standard input and prints its lines, words and characters, or only its words; Python 3.9, standard library only. Version 0.0 is the first prototype; each change is one version and one commit. Each of 18 use cases is a run of the tool graded from 0 to 1 by how well its output meets the specification; the grade total is their sum.",
+  "made_up": false,
+  "pattern": {
+    "context": "A component is built from a specification that defines its terms, such as what counts as a word or a character.",
+    "problem": "The code uses a built-in that approximates a definition, such as splitting at white space or taking a byte length. On plain ASCII test text the built-in and the definition agree, so the tests pass and several faults share one hidden cause.",
+    "solution": "Implement the definition itself. Record any edge choice the specification leaves open. Test each definition with input on which the built-in and the definition disagree, such as non-ASCII text and punctuation without spaces.",
+    "consequences": "One change closes every fault with that cause and adds tests that would catch its return. The code is a little longer and may run slower than the built-in."
+  },
+  "related": [
+    "wc-count-by-spec-definitions--2026-10-13-143312",
+    "wc-count-by-spec-definitions--2026-10-13-143312--user",
+    "approve-wc-count-by-spec-definitions--2026-10-13-143312",
+    "wc-count-by-spec-definitions--f0-0.3--2026-10-13-143312"
+  ],
+  "by": "planner, played by claude-opus-5-5",
+  "status": "proposed"
+}

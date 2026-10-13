@@ -1,0 +1,19 @@
+{
+  "id": "slug-python39-stdlib-only",
+  "by": "user, played by claude-opus-5-5",
+  "status": "active",
+  "related": ["wc-stdlib-only"],
+  "seed": "Run `python3.9 -I -S <the tool's script>` with no arguments, with standard input \"Café Society\\n\". -I -S turn off the user's and the site's packages, so only the standard library is there. The tool reads one title per line on standard input and prints each title's URL slug; the script is the tool's prototype in work.",
+  "reference": "Standard output \"cafe-society\\n\", exit status 0.",
+  "rubric": [
+    {"check": "Under Python 3.9 with only the standard library, the tool runs and the output is \"cafe-society\\n\" (the plan shared by every tool: \"A tool runs on Python 3.9 with the standard library only\").", "weight": 3},
+    {"check": "The exit status is 0 (the plan shared by every tool: \"A tool exits with status 0 on success\").", "weight": 1}
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A command-line tool's plan promises that it runs on one language version with the standard library only, while the machines that build and test it have that version alongside others and extra packages installed.",
+    "problem": "A test run with the default interpreter in the usual environment passes even when the tool needs a newer language version or a third-party package, so the promise goes unchecked until the tool reaches a bare machine and fails there.",
+    "solution": "Run the acceptance case with the promised interpreter version named explicitly and with its isolation switches (for Python, -I and -S) so that user and site packages cannot load, and check the exact output and the exit status.",
+    "consequences": "A hidden dependency or a newer-version feature shows as a failed case at test time instead of a failure in use. The case checks only the code path this input reaches; an import or feature on another path stays unchecked."
+  }
+}

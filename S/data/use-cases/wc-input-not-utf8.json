@@ -1,0 +1,32 @@
+{
+  "id": "wc-input-not-utf8",
+  "by": {
+    "role": "user",
+    "player": "claude-opus-5-5"
+  },
+  "status": "active",
+  "seed": "Run a word-count tool on input that is not UTF-8: command \"python3 <the tool's script>\", args [], stdin_hex \"636166e90a\". The tool reads a text on standard input and prints its line, word and character counts. The five bytes are 'café\\n' in Latin-1: byte e9 is é in Latin-1 and is not valid UTF-8. The tool runs under Python 3.9 with the standard library only.",
+  "reference": "stdout: null; exit_status: 2; stderr: \"a message (any wording)\". The plan does not state standard output on a read failure; it is not graded. The input is 'café\\n' in Latin-1.",
+  "rubric": [
+    {
+      "check": "Exit status is 2. The plan shared by every tool: \"A tool exits ... with status 2 and a message on standard error when its input cannot be read, such as input that is not UTF-8.\"",
+      "weight": 0.6
+    },
+    {
+      "check": "Standard error holds a message. The plan shared by every tool: \"A tool exits ... with status 2 and a message on standard error when its input cannot be read, such as input that is not UTF-8.\"",
+      "weight": 0.3
+    },
+    {
+      "check": "The tool does not end with a Python traceback in place of a message.",
+      "weight": 0.1
+    }
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A command-line tool reads text in a declared encoding on standard input, and its plan gives a distinct exit status and a message on standard error for input that cannot be read.",
+    "problem": "Left to defaults, the language runtime fails on bytes that do not decode: it prints a traceback and exits with its own generic status, so a caller cannot tell bad input from a crash.",
+    "solution": "Decode standard input explicitly in the declared encoding, catch the decode failure, write a one-line message to standard error and exit with the planned status.",
+    "consequences": "Callers can branch on the exit status. The plan leaves standard output on failure unstated, so it is not graded; the message wording is free, and only its presence is checked."
+  },
+  "related": []
+}

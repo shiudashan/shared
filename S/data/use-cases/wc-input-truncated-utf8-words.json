@@ -1,0 +1,34 @@
+{
+  "id": "wc-input-truncated-utf8-words",
+  "by": {
+    "role": "user",
+    "player": "claude-opus-5-5"
+  },
+  "status": "active",
+  "seed": "Run a word-count tool with --words on input that ends in a truncated UTF-8 sequence: command \"python3 <the tool's script>\", args [\"--words\"], stdin_hex \"6f6b20c3\". The tool reads a text on standard input and prints its line, word and character counts, or with --words only its word count. The four bytes are 'ok ' then c3, the first byte of a two-byte UTF-8 sequence with no second byte, so the input is not valid UTF-8. The tool runs under Python 3.9 with the standard library only.",
+  "reference": "stdout: null; exit_status: 2; stderr: \"a message (any wording)\". The plan does not state standard output on a read failure; it is not graded. The input is 'ok ' then the first byte of a two-byte sequence; a decoder that replaces bad bytes would wrongly print '1'.",
+  "rubric": [
+    {
+      "check": "Exit status is 2, not 0 with a count: the input is not UTF-8. The plan shared by every tool: \"A tool exits ... with status 2 and a message on standard error when its input cannot be read, such as input that is not UTF-8.\"",
+      "weight": 0.6
+    },
+    {
+      "check": "Standard error holds a message. The plan shared by every tool: \"A tool exits ... with status 2 and a message on standard error when its input cannot be read, such as input that is not UTF-8.\"",
+      "weight": 0.3
+    },
+    {
+      "check": "The tool does not end with a Python traceback in place of a message.",
+      "weight": 0.1
+    }
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A command-line tool reads text in a declared encoding on standard input and reports something computed from it, and its plan gives a distinct exit status and a message on standard error for input that cannot be read.",
+    "problem": "A lenient decoder replaces or drops the bad bytes, so input that should be refused still yields a plausible result: here a truncated sequence at the end vanishes or becomes one replacement character, and the tool prints a count with status 0.",
+    "solution": "Decode standard input strictly in the declared encoding, including the end of the stream, catch the decode failure, write a one-line message to standard error and exit with the planned status before printing any result.",
+    "consequences": "A caller never receives a count for unreadable input and can branch on the exit status. The plan leaves standard output on failure unstated, so it is not graded; the message wording is free, and only its presence is checked."
+  },
+  "related": [
+    "wc-input-not-utf8"
+  ]
+}

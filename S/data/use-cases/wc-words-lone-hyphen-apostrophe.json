@@ -1,0 +1,34 @@
+{
+  "id": "wc-words-lone-hyphen-apostrophe",
+  "by": {
+    "role": "user",
+    "player": "claude-opus-5-5"
+  },
+  "status": "active",
+  "seed": "Run a word-count tool on input where a hyphen and an apostrophe stand alone between words: command \"python3 <the tool's script>\", args [], stdin \"a - b ' c\\n\". The tool reads a text on standard input and prints its line, word and character counts, in that order, on one line. The tool's plan says: \"**Words** are runs of letters, digits, apostrophes and hyphens. Punctuation between words does not count as a word: \\\"well-known, isn't it?\\\" is three words.\" The tool runs under Python 3.9 with the standard library only.",
+  "reference": "stdout: \"1 5 10\\n\"; exit_status: 0. Hyphens and apostrophes are word characters in the plan, so they are not the punctuation that the second sentence excludes. A reading that needs a letter or digit in each word would count 3.",
+  "rubric": [
+    {
+      "check": "The word count is 5, not 3: \"-\" and \"'\" standing alone are runs of hyphens and apostrophes. The tool's plan: \"**Words** are runs of letters, digits, apostrophes and hyphens.\"",
+      "weight": 0.6
+    },
+    {
+      "check": "Standard output is exactly \"1 5 10\\n\".",
+      "weight": 0.3
+    },
+    {
+      "check": "Exit status is 0. The plan shared by every tool: \"A tool exits with status 0 on success\"",
+      "weight": 0.1
+    }
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A plan defines a term by a set of characters, then adds a looser sentence and an example that show the term in ordinary use.",
+    "problem": "The looser sentence and the example suggest a narrower meaning than the definition gives, here that a word needs a letter or digit. An implementer who follows them counts 3 words where the definition gives 5.",
+    "solution": "Let the definition decide. Read the looser sentence as applying only to characters outside the defined set, and check that the example agrees with the definition rather than adding a rule to it.",
+    "consequences": "The count follows the plan on every input, including ones the example does not cover. A lone hyphen or apostrophe counts as a word, which a reader of the example alone may not expect; that follows the plan and is intended."
+  },
+  "related": [
+    "wc-words-plan-example"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "2026-10-13-153035-slug-utf8-read-in-locale-encoding",
+  "finding": "A command-line tool that turns each line of standard input into a URL slug decodes its input and encodes its output in the encoding of the caller's locale, so under a Latin-1 locale it misreads UTF-8 input without any error. In one run on macOS with Python 3.9, named by the id 2026-10-13-153035-slug-utf8-under-other-locale in the symptom, with the locale set to Latin-1 (LC_ALL=en_US.ISO8859-1), the title \"Café Ελλάδα\" sent as UTF-8 bytes gave \"cafa-i-i-i-i-i-i\" with exit status 0: \"é\" became \"a\" and the 6-letter Greek word became six \"i\", where \"cafe-ελλαδα\" was expected. A tool whose interface declares its streams as UTF-8 must set that encoding on standard input and output itself rather than inherit it from the locale, so the same bytes give the same result in every environment.",
+  "symptom": [
+    "2026-10-13-153035-slug-utf8-under-other-locale: env LC_ALL=en_US.ISO8859-1; stdin \"Café Ελλάδα\\n\" (UTF-8); stdout \"cafa-i-i-i-i-i-i\\n\"; exit 0"
+  ],
+  "kinds": [
+    "output"
+  ],
+  "reference": "The expected answer for this input, set by the user: standard output \"cafe-ελλαδα\\n\" in UTF-8 and exit status 0. It follows from a rule every tool in the project shares: a tool reads UTF-8 on standard input and writes UTF-8 on standard output, whatever the locale.",
+  "severity": 3,
+  "about": "run",
+  "made_up": false,
+  "pattern": {
+    "context": "A command-line text tool documents its standard input and output as UTF-8, and is written in a language whose runtime picks the encoding of the standard streams from the caller's locale, as Python 3.9 does.",
+    "problem": "The tool leaves the stream encoding to the runtime, so under a non-UTF-8 locale it decodes UTF-8 bytes as another encoding and still exits 0. Under a Latin-1 locale, \"Café Ελλάδα\" became \"cafa-i-i-i-i-i-i\": the 2 bytes of \"é\" were read as 2 Latin-1 characters, and the 6 Greek letters, 12 bytes, came out as six \"i\".",
+    "solution": "Set standard input and standard output to UTF-8 at the start of the program, and test the tool under a non-UTF-8 locale: the same input then gives \"cafe-ελλαδα\", and input that is not valid UTF-8 is rejected instead of being read as another encoding.",
+    "consequences": "With the fault, the output depends on an environment setting the caller rarely sees, and the corruption is silent, so wrong identifiers pass downstream. With the solution, the result depends only on the input bytes; callers in a UTF-8 locale see no change, and callers who relied on the locale encoding must now send UTF-8."
+  },
+  "related": [
+    "2026-10-13-153035-slug-utf8-whatever-the-locale",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-decision"
+  ],
+  "by": "run-reviewer, played by claude-opus-5-5",
+  "status": "open"
+}

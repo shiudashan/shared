@@ -1,0 +1,24 @@
+{
+  "id": "wc-tests-cover-spec--f0-0.4--2026-10-13-143312--user",
+  "by": {
+    "role": "user",
+    "player": "claude-opus-5-5"
+  },
+  "status": "given",
+  "grade": 0.9,
+  "reason": "12 tests, OK, status 0. The test file now has tests for the output line, lines, words with hyphens, apostrophes and punctuation, characters as code points, --words and exit status 2. One part of the word definition has no test: digits. Dropping \"N\" from in_word would pass every test. Up from 0.7 on 0.0.",
+  "context": "The run is the unit-test suite of a later version of a word-count tool's first prototype, run with python3 -m unittest under Python 3.9.6. The tool reads a text on standard input and prints its lines, words and characters on one line, or only the words with the --words option; it exits with status 2 when the input is not UTF-8. Its plan says lines are newline characters, words are runs of letters, digits, apostrophes and hyphens, and characters are Unicode code points. The run is graded on two checks: the suite passes (weight 0.4), and each behaviour the plan names has a test (weight 0.6); the missing digits test costs about 1/6 of the second check. in_word is the function that decides whether a character belongs to a word; \"N\" in it is the Unicode number category, which holds the digits. 0.0 is the first version of the same prototype, whose suite of 3 tests was graded 0.7. The same suite was graded 0.9 again after this version was released.",
+  "made_up": false,
+  "pattern": {
+    "context": "A tool's plan defines a behaviour as a list of parts, such as a word being a run of letters, digits, apostrophes and hyphens, and the unit-test suite has been extended to test each behaviour the plan names.",
+    "problem": "A test for the behaviour as a whole can pass while one part of the definition is never exercised. Removing that part from the code changes the tool's output for real input, yet every test still passes.",
+    "solution": "Check coverage at the level of the definition's parts: for each part, ask whether deleting it from the code would make some test fail, and add a test whose input needs that part when none would.",
+    "consequences": "The suite then guards each part of the definition, not only the behaviour's name. The check costs one question per part, and it finds only gaps in parts the plan writes down."
+  },
+  "related": [
+    "wc-tests-cover-spec--f0-0.0--2026-10-13-143312--user",
+    "wc-tests-cover-spec--f0-0.4--2026-10-13-143312--after-release--user",
+    "wc-tests-miss-spec-behaviours",
+    "wc-tests-per-spec-behaviour"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "slug-utf8-under-other-locale",
+  "by": "user, played by claude-opus-5-5",
+  "status": "active",
+  "seed": "Run `LC_ALL=en_US.ISO8859-1 python3 <the tool's script>` with no arguments, with standard input \"Café Ελλάδα\\n\" as UTF-8 bytes. The input bytes are UTF-8 while the locale is Latin-1, so a tool that uses the locale's encoding reads and writes the wrong bytes. The script is the prototype in work of a command-line tool that reads one title per line on standard input and prints each title's URL slug on its own line. python3 here is Python 3.9.",
+  "reference": "Standard output is \"cafe-ελλαδα\\n\", encoded as UTF-8, and the exit status is 0.",
+  "rubric": [
+    {
+      "check": "The input is read as UTF-8 whatever the locale: \"Café\" gives \"cafe\" and the Greek word stays letters (the tool's plan: \"\\\"Café\\\" becomes \\\"cafe\\\"\"; the plan shared by every tool: \"A tool reads UTF-8 text on standard input\").",
+      "weight": 2
+    },
+    {
+      "check": "The output is written as UTF-8 whatever the locale: standard output is the UTF-8 bytes of \"cafe-ελλαδα\\n\" (the plan shared by every tool: a tool reads UTF-8 text \"and writes its result on standard output\").",
+      "weight": 2
+    },
+    {
+      "check": "The exit status is 0 (the plan shared by every tool: \"A tool exits with status 0 on success\").",
+      "weight": 1
+    }
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A command-line tool's plan says it reads and writes UTF-8 text. The tool runs on machines whose locale names another encoding, such as Latin-1, while the bytes it receives are still UTF-8.",
+    "problem": "Python opens standard input and output in the locale's encoding. Under a Latin-1 locale each UTF-8 multi-byte character is read as several wrong characters, so accented and non-Latin letters are lost or garbled, and the output is written in Latin-1 or fails on characters Latin-1 cannot hold. Tests run under a UTF-8 locale pass and hide this.",
+    "solution": "Read standard input and write standard output as UTF-8 explicitly, independent of the locale. Keep an acceptance case that runs the tool with a non-UTF-8 locale and non-ASCII input.",
+    "consequences": "The tool gives the same bytes on every machine. Input that is truly in the locale's encoding, rather than UTF-8, is no longer read correctly; the plan's UTF-8 rule makes that the caller's concern."
+  },
+  "related": []
+}

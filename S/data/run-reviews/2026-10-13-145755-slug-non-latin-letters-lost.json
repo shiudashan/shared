@@ -1,0 +1,29 @@
+{
+  "id": "2026-10-13-145755-slug-non-latin-letters-lost",
+  "finding": "A command-line tool that turns each line of standard input into a URL slug treats every letter outside a to z as a separator, so it silently drops words written in other scripts. In one run, named by the id 2026-10-13-145755-slug-non-latin-letters in the symptom, the one-line input \"Ελλάδα 2024\" gave \"2024\" with exit status 0: the 6-letter Greek word, 1 of the title's 2 words, was lost. A tool that keeps letters must take letter in the Unicode sense, keeping letters of every script, lower-cased and without accents, so this input gives \"ελλαδα-2024\".",
+  "symptom": [
+    "2026-10-13-145755-slug-non-latin-letters: stdin \"Ελλάδα 2024\\n\"; stdout \"2024\\n\"; exit 0"
+  ],
+  "kinds": [
+    "output"
+  ],
+  "reference": "The expected answer for this input, set by the user: standard output \"ελλαδα-2024\\n\" and exit status 0.",
+  "severity": 3,
+  "about": "run",
+  "made_up": false,
+  "pattern": {
+    "context": "A text tool turns free text into an identifier, such as a URL slug, by keeping letters and digits, stripping accents, lower-casing, and joining the rest with hyphens.",
+    "problem": "The tool tests for a letter with the range a to z after stripping accents, so letters of other scripts count as separators. The title \"Ελλάδα 2024\" becomes \"2024\": 1 of 2 words and all 6 of its letters are lost, and the exit status is 0, so nothing reports the loss.",
+    "solution": "Test for a letter with the Unicode letter property, strip accents by removing combining marks after decomposition, and lower-case letters of every script: \"Ελλάδα 2024\" becomes \"ελλαδα-2024\".",
+    "consequences": "With the fault, any title in a non-Latin script loses its words without an error, and titles that differ only in those words map to the same identifier. With the solution, the words survive, and the identifier holds non-ASCII characters, so a consumer that needs ASCII-only URLs must percent-encode them."
+  },
+  "related": [
+    "slug-non-latin-letters",
+    "2026-10-13-145755-slug-non-latin-letters-user",
+    "2026-10-13-145755-slug-letters-any-script",
+    "2026-10-13-145755-slug-letters-any-script-review",
+    "2026-10-13-145755-slug-letters-any-script-decision"
+  ],
+  "by": "run-reviewer, played by claude-opus-5-5",
+  "status": "open"
+}

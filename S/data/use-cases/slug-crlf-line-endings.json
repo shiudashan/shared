@@ -1,0 +1,25 @@
+{
+  "id": "slug-crlf-line-endings",
+  "by": "user, played by claude-opus-5-5",
+  "status": "active",
+  "seed": "Run `python3 <the tool's script>` with no arguments, with standard input \"Hello World\\r\\nSecond Post\\r\\n\": lines end in CR LF, as files saved on Windows do. The script is the prototype in work of a command-line tool that reads one title per line on standard input and prints each title's URL slug on its own line. python3 here is Python 3.9.",
+  "reference": "Standard output \"hello-world\\nsecond-post\\n\", and exit status 0.",
+  "rubric": [
+    {
+      "check": "The carriage return is not a letter or digit, so it does not survive into the slug, and no slug ends in a hyphen: the output is \"hello-world\\nsecond-post\\n\" (the tool's plan: \"Every run of characters that are not letters or digits becomes one hyphen\" and \"The slug has no hyphen at its start or end\").",
+      "weight": 3
+    },
+    {
+      "check": "The exit status is 0 (the plan shared by every tool: \"A tool exits with status 0 on success\").",
+      "weight": 1
+    }
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A line-oriented tool turns each input line into an output value by a rule about which characters to keep, and its plan says the result has no separator at its start or end. Input may come from files saved on Windows, where each line ends in CR LF rather than LF.",
+    "problem": "Code that strips only the LF leaves the CR on the line. Depending on how input is read, the CR either reaches the output as a stray character or becomes a trailing separator, giving \"hello-world-\" or \"hello-world\\r\". Tests written with LF-only input pass and hide this.",
+    "solution": "Treat the line ending as not part of the line: strip CR LF as well as LF before applying the rule, or rely on the rule itself to drop the CR and then trim separators at both ends. Keep an acceptance case whose input uses CR LF line endings.",
+    "consequences": "The same titles give the same output whatever line endings the file was saved with. Output lines end in LF only, so CR LF input does not round-trip its line endings."
+  },
+  "related": []
+}

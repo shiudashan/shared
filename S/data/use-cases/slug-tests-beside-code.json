@@ -1,0 +1,20 @@
+{
+  "id": "slug-tests-beside-code",
+  "by": "user, played by claude-opus-5-5",
+  "status": "active",
+  "related": ["wc-tests-cover-spec", "wc-tests-miss-spec-behaviours"],
+  "seed": "Run `python3 -m unittest discover -s <the prototype's folder> -v`, with empty standard input and no arguments. The tool reads one title per line on standard input and prints each title's URL slug, with an optional --max N to cap the slug's length; the prototype's folder holds the version in work and, beside its code, the test file. The tool's plan names its behaviours, and the plan shared by every tool holds the rules all tools follow. The run is on Python 3.9, from the tool's folder.",
+  "reference": "Exit status 0; standard error ends with \"OK\"; the verbose list names a test for each behaviour of the tool's plan (one slug per line, lower-casing, accents, a run of other characters to one hyphen, no hyphen at start or end, --max cut at a hyphen and never ending in one, empty and letterless titles) and for the rules of the plan shared by every tool that the tool shows (UTF-8 in and out, exit 0, exit 2 with a message on input that is not UTF-8).",
+  "rubric": [
+    {"check": "The tests pass: exit status 0 and standard error ends with \"OK\".", "weight": 2},
+    {"check": "Every behaviour the tool's plan names has a test in the test file beside the code, seen in the verbose list (the plan shared by every tool: \"Every behaviour a plan names has a test beside the code\").", "weight": 3},
+    {"check": "The rules of the plan shared by every tool that the tool shows (UTF-8 in and out, exit 0, exit 2 with a message on input that is not UTF-8) have tests too (the plan shared by every tool: \"Every behaviour a plan names has a test beside the code\").", "weight": 2}
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A tool is built from a written plan that names its behaviours, and a plan shared by every tool adds rules such as the text encoding and the exit statuses. Tests sit beside the code and are run as a suite.",
+    "problem": "A passing suite says nothing about coverage. A suite can pass while whole behaviours of the plan, or the shared rules, have no test, so a fault in them passes too.",
+    "solution": "Run the suite in verbose mode, so each test is listed by name, and check the list against the plan: one test for each behaviour the tool's plan names and for each shared rule the tool shows, besides the suite passing.",
+    "consequences": "A missing test shows as an unmet check even when the suite passes. The check is by name, so a test that is named for a behaviour but does not exercise it still counts; reading the tests closes that gap."
+  }
+}

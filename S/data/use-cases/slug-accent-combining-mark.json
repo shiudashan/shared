@@ -1,0 +1,25 @@
+{
+  "id": "slug-accent-combining-mark",
+  "by": "user, played by claude-opus-5-5",
+  "status": "active",
+  "seed": "Run `python3 <the tool's script>` with no arguments, with standard input \"Résumé Tips\\n\" in UTF-8, where each accent is a separate combining mark (U+0301) after its letter, not a precomposed letter: the bytes 5265cc8173756d65cc8120546970730a (hex). The script is the prototype in work of a command-line tool that reads one title per line on standard input and prints each title's URL slug. python3 here is Python 3.9.",
+  "reference": "Standard output \"resume-tips\\n\", exit status 0.",
+  "rubric": [
+    {
+      "check": "An accent written as a combining mark is part of its letter, so the letter loses it; the mark is not a separator: the output is \"resume-tips\\n\", not \"re-sume-tips\\n\" (the tool's plan: \"Accented letters lose their accents\"; \"Every run of characters that are not letters or digits becomes one hyphen\").",
+      "weight": 3
+    },
+    {
+      "check": "The exit status is 0 (the plan shared by every tool: \"A tool exits with status 0 on success\").",
+      "weight": 1
+    }
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A tool's plan says accented letters lose their accents and every run of characters that are not letters or digits becomes one separator. Unicode text can write an accented letter either as one precomposed code point or as a base letter followed by a combining mark.",
+    "problem": "A combining mark is not a letter or a digit, so code that strips accents only from precomposed letters, or classifies code point by code point, treats the mark as a separator and splits the word: \"re-sume\" instead of \"resume\". Tests written with precomposed input pass and hide this.",
+    "solution": "Decompose the text first (Unicode NFD or NFKD), then drop the combining marks, then apply the letter-or-digit rule. Keep an acceptance case whose input is given as exact bytes in decomposed form, so the test cannot be silently normalized by an editor.",
+    "consequences": "Precomposed and decomposed spellings of the same title give the same output. The case pins one mark (U+0301) on Latin letters; marks that are part of a letter in other scripts are dropped the same way, which may not be what the plan means for those scripts."
+  },
+  "related": ["2026-10-13-145755-slug-letters-any-script"]
+}

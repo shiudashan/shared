@@ -1,0 +1,25 @@
+{
+  "id": "2026-10-13-153035-slug-utf8-whatever-the-locale-decision",
+  "decision": "approve",
+  "about": [
+    "A change to the code of a Python 3.9 command-line tool that prints the URL slug of each title on standard input. Before, it read and wrote in the encoding of the caller's locale, so under a non-UTF-8 locale \"Café Ελλάδα\" came out as \"cafa-i-i-i-i-i-i\" and input that is not UTF-8 was accepted. Now it sets standard input and standard output to UTF-8 at the start of the program, and tests run it under the locale en_US.ISO8859-1."
+  ],
+  "reason": "Approved as proposed: the shared spec that every tool in the project follows already fixes both streams as UTF-8, so this fixes the code, with no spec change. It raises the trial run under a non-UTF-8 locale from 0.2 to 1.0 and the round's mean from 0.8 to 1.0, closing a severity-3 finding for 2 code lines and about 15 test lines. Callers in a UTF-8 locale see no change, so it is easy to undo.\n\nTerms: a round is one cycle of trial runs, review and change; this round had 4 trial runs, each graded from 0 (worst) to 1 (best). Severity 3 means the finding makes a run's result unusable.",
+  "made_up": false,
+  "pattern": {
+    "context": "A tool reads standard input and writes standard output, and a spec that the tool already follows fixes the encoding of both streams, whatever the caller's locale.",
+    "problem": "The code uses the locale's encoding instead, so under a locale that does not match the spec, output is corrupted and invalid input is accepted, while tests run only under a matching locale and pass.",
+    "solution": "Fix the code, not the spec: set both streams to the spec's encoding at the start of the program, and add tests that run the tool under a locale that does not match.",
+    "consequences": "The tool behaves the same under every locale and rejects input the spec does not allow. Callers whose locale already matches see no change, so the fix costs little and is easy to undo."
+  },
+  "related": [
+    "2026-10-13-153035-slug-utf8-whatever-the-locale",
+    "2026-10-13-153035-slug-utf8-read-in-locale-encoding",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-review",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-user-review",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-code-review",
+    "2026-10-13-153035-slug-f0.7-release-decision"
+  ],
+  "by": "decision-maker, played by claude-opus-5-5",
+  "status": "final"
+}

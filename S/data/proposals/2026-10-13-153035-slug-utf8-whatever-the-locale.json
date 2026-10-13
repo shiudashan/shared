@@ -1,0 +1,46 @@
+{
+  "id": "2026-10-13-153035-slug-utf8-whatever-the-locale",
+  "findings": [
+    "Severity 3 (on a scale where higher is worse; 3 means the result is unusable), kind output: under a Latin-1 locale, the tool reads its UTF-8 input in the locale's encoding: \"Café Ελλάδα\" gives \"cafa-i-i-i-i-i-i\", with \"é\" turned into \"a\" and the Greek word into six \"i\". Standard input and output should be UTF-8 whatever the locale, giving \"cafe-ελλαδα\"."
+  ],
+  "gain": "Environment: a small command-line tool in Python 3.9, standard library only, that reads titles on standard input and writes one URL slug per title on standard output. The tool takes its stream encoding from the locale, while the project's shared rule fixes it as UTF-8. The tests run the command in the tester's UTF-8 locale, so they cannot see the gap. Setting both streams to UTF-8 in the code, and running the command tests under a non-UTF-8 locale, makes the contract hold in every locale and makes the tests fail when it does not. A run is one use case played against the tool and graded from 0 to 1; this step played 4. The locale run goes from grade 0.2 to 1.0; the mean over this step's 4 runs goes from 0.8 to 1.0.",
+  "kind": "fix",
+  "delta": "None. The rules every tool in the project shares already say a tool reads UTF-8 on standard input and writes its result on standard output; that rule does not depend on the locale. The tool's own plan does not change.",
+  "design": "In the tool's program: at the start of main(), call sys.stdin.reconfigure(encoding=\"utf-8\", errors=\"strict\") and sys.stdout.reconfigure(encoding=\"utf-8\"), so the encoding comes from the contract, not the environment. Line splitting and the exit-2 path for bad input stay as they are. In the tool's test file: the helper that runs the command takes an environment; add command tests that run under LC_ALL=en_US.ISO8859-1 with PYTHONIOENCODING and PYTHONUTF8 removed from the environment.",
+  "tasks": [
+    "Add the tests of the check to the test file and see them fail on the current version.",
+    "Add the two reconfigure calls to main().",
+    "Run the whole test suite; all tests pass.",
+    "Raise the version, record the change, commit code and tests in one commit."
+  ],
+  "check": "With env LC_ALL=en_US.ISO8859-1 and without PYTHONIOENCODING or PYTHONUTF8: stdin \"Café Ελλάδα\\n\" encoded as UTF-8 gives stdout \"cafe-ελλαδα\\n\" encoded as UTF-8 and exit 0; stdin b\"Caf\\xe9\\n\" gives exit 2 and a non-empty stderr. On the version before the change both fail (the first prints b\"cafa-i-i-i-i-i-i\\n\", the second exits 0). After the change both pass, and the 26 existing tests still pass, 28 in all.",
+  "upsides": [
+    {"what": "runs of this step raised to full grade", "amount": 1, "unit": "run of 4, from 0.2 to 1.0"},
+    {"what": "mean grade over this step's runs", "amount": 0.2, "unit": "grade points, from 0.8 to 1.0"},
+    {"what": "findings of severity 3 closed", "amount": 1, "unit": "finding"},
+    {"what": "shared rules whose locale independence gains a test", "amount": 2, "unit": "rules (UTF-8 in and out; exit 2 on input that is not UTF-8)"}
+  ],
+  "downsides": [
+    {"what": "code lines added to the tool's program", "amount": 2, "unit": "lines"},
+    {"what": "test lines added to the tool's test file", "amount": 15, "unit": "lines"},
+    {"what": "added test time, from 2 subprocess starts", "amount": 0.1, "unit": "seconds per test run"},
+    {"what": "behaviour change for a caller who relied on locale decoding", "amount": 0, "unit": "callers; the shared rule never allowed it"}
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A command-line text tool whose interface declares standard input and output as UTF-8, written in a language whose runtime picks the stream encoding from the caller's locale, as Python 3.9 does; its tests run in the tester's UTF-8 locale.",
+    "problem": "The tool inherits the stream encoding, so under a non-UTF-8 locale it misreads UTF-8 input and still exits 0, and the tests cannot see it because they share the tester's locale.",
+    "solution": "Set standard input (strict) and standard output to UTF-8 at the start of the program, and add command tests that run under a non-UTF-8 locale with the runtime's encoding overrides removed: valid UTF-8 gives the right output, input that is not UTF-8 is rejected.",
+    "consequences": "The output depends only on the input bytes, and the tests fail if that breaks. Cost: 2 code lines, about 15 test lines, about 0.1 seconds per test run. Callers in a UTF-8 locale see no change; callers who relied on locale decoding must send UTF-8, which the interface already required."
+  },
+  "related": [
+    "2026-10-13-153035-slug-utf8-read-in-locale-encoding",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-review",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-user-review",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-decision",
+    "2026-10-13-153035-slug-utf8-whatever-the-locale-code-review",
+    "2026-10-13-153035-slug-f0.7-release-decision"
+  ],
+  "by": "planner, played by claude-opus-5-5",
+  "status": "proposed"
+}

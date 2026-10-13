@@ -1,0 +1,36 @@
+{
+  "id": "wc-lines-other-breaks",
+  "by": {
+    "role": "user",
+    "player": "claude-opus-5-5"
+  },
+  "status": "active",
+  "seed": "Run a word-count tool on a text that holds a carriage return and a line separator: command \"python3 <the tool's script>\", args [], stdin \"a\\rb\\u2028c\\n\". The tool reads a text on standard input and prints its line, word and character counts, in that order, on one line. The six code points of the input are a, U+000D (carriage return), b, U+2028 (line separator), c, U+000A (newline). In the tool's plan, lines are the number of newline characters, words are runs of letters, digits, apostrophes and hyphens, and characters are Unicode code points, not bytes. The tool runs under Python 3.9 with the standard library only.",
+  "reference": "stdout: \"1 3 6\\n\"; exit_status: 0. A reader that splits with str.splitlines would count 3 lines.",
+  "rubric": [
+    {
+      "check": "The line count is 1, not 3: U+000D and U+2028 are not newline characters. The tool's plan: \"**Lines** are the number of newline characters.\"",
+      "weight": 0.5
+    },
+    {
+      "check": "The character count is 6: the carriage return and the line separator are code points. The tool's plan: \"**Characters** are Unicode code points, not bytes\"",
+      "weight": 0.2
+    },
+    {
+      "check": "Standard output is exactly \"1 3 6\\n\".",
+      "weight": 0.2
+    },
+    {
+      "check": "Exit status is 0. The plan shared by every tool: \"A tool exits with status 0 on success\"",
+      "weight": 0.1
+    }
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A tool counts lines in text, and its plan defines a line as one newline character (U+000A), while the language's line-splitting helpers also break on other characters.",
+    "problem": "Helpers such as Python's str.splitlines also split on carriage return, line separator and other Unicode breaks, so the count drifts from the plan on text that holds them: here 3 lines where the plan gives 1.",
+    "solution": "Count the planned newline character directly, for example text.count(\"\\n\"), and keep the other break characters as ordinary code points in the character count and as word separators.",
+    "consequences": "The count matches the plan and the classic Unix wc on any input. A text with a final line that lacks a newline counts one less line than a splitter would give; that follows the plan and is intended."
+  },
+  "related": []
+}

@@ -1,0 +1,22 @@
+{
+  "id": "wc-tests-cover-spec--f0-0.0--2026-10-13-143312--user",
+  "by": {
+    "role": "user",
+    "player": "claude-opus-5-5"
+  },
+  "status": "given",
+  "grade": 0.7,
+  "reason": "The 3 tests pass (OK, exit 0). Coverage is partial: the plan's example covers the three counts and lines, and one test covers hyphens and apostrophes. No test covers characters as code points (the only test text is ASCII), punctuation without spaces, the one-line output, or --words. That is why the byte-count and word-split failures pass the suite.",
+  "context": "The run is the unit-test suite of the first prototype of a word-count tool, run with python3 -m unittest under Python 3.9.6. The tool reads a text on standard input and prints its lines, words and characters on one line, or only the words with the --words option. Its plan says lines are newline characters, words are runs of letters, digits, apostrophes and hyphens, and characters are Unicode code points; the plan includes one worked example of input and output. The run is graded on two checks: the suite passes (weight 0.4), and each behaviour the plan names has a test (weight 0.6). The prototype had two known defects: it counted characters as UTF-8 bytes (the byte-count failure), and it split words only at whitespace, so 'a,b' was one word (the word-split failure).",
+  "made_up": false,
+  "pattern": {
+    "context": "A small tool has a written plan that names its behaviours, and a unit-test suite written alongside the first prototype.",
+    "problem": "A passing suite reads as evidence that the prototype meets the plan, but the tests cover only some of the named behaviours. Test inputs that are too easy, such as ASCII-only text or words always separated by spaces, cannot tell a correct prototype from a wrong one, so known defects pass.",
+    "solution": "Grade the suite against the plan, not only by its exit status: list each behaviour the plan names, find the test for it, and check that the test input could make a wrong implementation fail. Weight that coverage above the pass result.",
+    "consequences": "A green suite with gaps gets a partial grade, and the gaps become named missing tests. The grading costs one pass over the plan per suite, and it judges only the behaviours the plan writes down."
+  },
+  "related": [
+    "wc-tests-miss-spec-behaviours",
+    "wc-tests-per-spec-behaviour"
+  ]
+}

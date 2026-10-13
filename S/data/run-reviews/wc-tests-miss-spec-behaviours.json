@@ -1,0 +1,31 @@
+{
+  "id": "wc-tests-miss-spec-behaviours",
+  "by": "run-reviewer, played by claude-opus-5-5",
+  "status": "open",
+  "finding": "The first version of a small word-counting command-line tool (Python 3.9, standard unittest) had a test suite that used only ASCII text with words separated by spaces, so two faults passed it: counting characters as UTF-8 bytes instead of Unicode code points, and splitting words only at whitespace, so that \"a,b\" counted as one word; the one-line output and the --words option had no test either. The suite, in f0, the directory holding that version's code and tests, ran 3 tests, all passing, and a grader scored it 0.7 out of 1, where passing is worth 0.4 and having one test per behaviour named in the tool's plan is worth 0.6, of which about half was met. Each behaviour a plan names needs its own test, with input that tells the right behaviour from its likely wrong ones, such as non-ASCII text for a character count.",
+  "symptom": [
+    "python3 -m unittest discover -s f0: \"Ran 3 tests in 0.000s\\n\\nOK\", exit 0",
+    "grade 0.7: per-behaviour coverage (0.6) about half met"
+  ],
+  "kinds": ["test report"],
+  "reference": "The rubric used to grade the suite: the suite passes (0.4 of the grade) and each behaviour the tool's plan names has a test (0.6 of the grade).",
+  "severity": 2,
+  "about": "the program's unit-test suite",
+  "made_up": false,
+  "pattern": {
+    "context": "A program is built from a written plan that names its behaviours, and its first version ships with a unit-test suite written alongside the code.",
+    "problem": "The suite tests only easy input (ASCII text, words separated by spaces) and skips some named behaviours, so it passes (3 tests, OK, exit 0) while the code counts characters as bytes and joins words split by punctuation; graded 0.7 out of 1, with about half of the 0.6 for per-behaviour coverage met.",
+    "solution": "Write one test for each behaviour the plan names, with input that separates the right behaviour from its likely wrong ones: non-ASCII text for character counts, punctuation without spaces for word splitting, and a test for each output form and option.",
+    "consequences": "A passing suite with these gaps reports faults as correct, so they reach a release unseen. Testing every named behaviour costs a few more tests (the next version of this suite had 12) and turns those faults into failing tests; that suite scored 0.9, with one gap left, since no test covered digits as word characters."
+  }
+,
+  "related": [
+    "wc-tests-cover-spec--f0-0.0--2026-10-13-143312--user",
+    "wc-tests-cover-spec--f0-0.4--2026-10-13-143312--user",
+    "wc-count-by-spec-definitions--2026-10-13-143312--user",
+    "wc-tests-per-spec-behaviour",
+    "wc-tests-per-spec-behaviour--2026-10-13-143312",
+    "approve-wc-tests-per-spec-behaviour--2026-10-13-143312",
+    "release-wc-f0-0.4--2026-10-13-143312"
+  ]
+}

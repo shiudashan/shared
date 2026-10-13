@@ -1,0 +1,48 @@
+{
+  "id": "2026-10-13-145755-slug-letters-any-script",
+  "findings": [
+    "Accents dropped: the tool turns an accented letter into a separator instead of the plain letter (\"Café\" gives \"caf\"); severity 3.",
+    "Non-Latin letters lost: the tool turns each letter outside a to z, such as Greek, into a separator, so the letters are lost; severity 3."
+  ],
+  "gain": "Both findings come from one fault: the tool treats only a to z as letters, so an accented letter or a letter of another script becomes a separator. Defining a letter as a Unicode letter, and removing accents before the separator rule, fixes both. The 5 runs that print a wrong slug (titles with accented or Greek letters) go from grade 0.25 to 1.0; the 20 runs that pass keep passing.",
+  "kind": "fix",
+  "delta": "None. The tool's plan already says accented letters lose their accents and names no script, so the fault is in the build, not the plan. The choice the plan leaves open is recorded as one line in the record of open choices: a letter or digit is a Unicode letter or digit of any script, and the underscore is not one; accents are removed by Unicode NFKD decomposition and dropping the combining marks, before lower-casing; NFKD also folds compatibility forms such as \"ﬁ\" to \"fi\", which a URL wants.",
+  "design": "In the slug function: decompose the title with unicodedata.normalize(\"NFKD\"), drop characters for which unicodedata.combining() is non-zero, lower-case, then replace each run matching [\\W_]+ (Unicode-aware in Python 3) with one hyphen and strip edge hyphens. Standard library only. Add the tests named in the check beside the code.",
+  "tasks": [
+    "Add the line of the delta to the record of open choices.",
+    "Add the tests of the check and see the first four fail on the current version.",
+    "Change the slug function as the design says.",
+    "Run the tests; all pass.",
+    "Raise the version, add its changelog entry, commit the decision line, code and tests in one commit, and tag it with the version."
+  ],
+  "check": "slug(\"Café\") == \"cafe\"; slug(\"ÉCOLE\") == \"ecole\"; slug(\"Crème Brûlée à la Française\") == \"creme-brulee-a-la-francaise\"; slug(\"Ελλάδα 2024\") == \"ελλαδα-2024\". These 4 fail on the current version and pass on the next. Guards that pass on both: slug(\"snake_case_name\") == \"snake-case-name\"; slug(\"Don't Stop\") == \"don-t-stop\"; slug(\"Hello, World!\") == \"hello-world\". Rerunning the 25 use cases gives 25 of 25 at grade 1.0 for the output of these 5 runs. A use case is one input the tool is run on, with a reference output; a run's grade is from 0 to 1 against that reference.",
+  "upsides": [
+    {"what": "runs whose wrong slug becomes right", "amount": 5, "unit": "runs of 25"},
+    {"what": "grade gain on each of those runs", "amount": 0.75, "unit": "grade points"},
+    {"what": "findings of severity 3 closed", "amount": 2, "unit": "findings"},
+    {"what": "scripts whose letters are kept instead of lost", "amount": 1, "unit": "all Unicode scripts, from Latin a to z only"}
+  ],
+  "downsides": [
+    {"what": "lines changed in the tool's source", "amount": 4, "unit": "lines"},
+    {"what": "letters without a decomposition stay as they are, not turned to ASCII (ß, ø, æ)", "amount": 3, "unit": "known letters, none in any use case"},
+    {"what": "slugs that are no longer ASCII-only, for titles in other scripts", "amount": 1, "unit": "run of 25 (the Greek title), as its reference asks"}
+  ],
+  "made_up": false,
+  "pattern": {
+    "context": "A text tool splits input into words or slugs by a character class, in Python 3.9 with the standard library only, and its plan says letters, not which script.",
+    "problem": "The class is written as a to z, so accented letters and letters of other scripts become separators and are lost: \"Café\" gives \"caf\", \"Ελλάδα 2024\" gives \"2024\".",
+    "solution": "Decompose with NFKD, drop combining marks, lower-case, and treat every Unicode letter or digit as a letter, with [\\W_]+ as the separator; record the choice where the plan leaves it open.",
+    "consequences": "5 of 25 runs go from grade 0.25 to 1.0 for a 4-line change; slugs of non-Latin titles are no longer ASCII-only, and letters without a decomposition, such as ß, ø and æ, stay as they are."
+  },
+  "related": [
+    "2026-10-13-145755-slug-accents-dropped",
+    "2026-10-13-145755-slug-non-latin-letters-lost",
+    "2026-10-13-145755-slug-letters-any-script-review",
+    "2026-10-13-145755-slug-letters-any-script-user-review",
+    "2026-10-13-145755-slug-letters-any-script-decision",
+    "2026-10-13-145755-slug-letters-any-script-code-review",
+    "slug-accent-combining-mark"
+  ],
+  "by": "planner, played by claude-opus-5-5",
+  "status": "proposed"
+}

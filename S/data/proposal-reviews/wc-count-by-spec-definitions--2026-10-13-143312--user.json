@@ -1,0 +1,25 @@
+{
+  "id": "wc-count-by-spec-definitions--2026-10-13-143312--user",
+  "proposal": "Make a command-line tool that prints the lines, words and characters of standard input (Python 3.9, standard library only) count words and characters by the definitions in its specification: words are runs of letters, digits, apostrophes and hyphens, and characters are Unicode code points. The first prototype splits words at white space and counts bytes. The proposal adds tests with non-ASCII text and with punctuation between words. Its check is the list of grades it expects after the change. Its gain is the rise in the grade total: each of 18 use cases is a run of the tool graded 0 to 1 against the specification, and the total is their sum. Proposals are ranked by gain against cost.",
+  "feedback": "Approve. Counting by the specification's own definitions is the right fix, and the five deciding tests check the specification's numbers. One number is wrong. The check says the other 12 use cases stay at their grade. The use case that grades whether every behaviour the specification names has a test will not stay: this change adds tests with non-ASCII text and with punctuation between words, two of the gaps that held that grade at 0.7. Expect it to rise, so the check holds on 0.1. The gain is then a little larger than 4.8, not smaller, so the rank stands.",
+  "corrections": [
+    {"field": "check: use cases that stay at their grade", "from": "the other 12", "to": "the other 11; the use case that grades whether every specified behaviour has a test rises from 0.7", "reason": "the new tests cover characters as code points and punctuation between words, which an earlier review of the runs names as missing from the tests"},
+    {"field": "upsides: grade total", "from": "4.8 points, 12.9 to 17.7 of 18", "to": "at least 4.8 points, 12.9 to at least 17.7 of 18", "reason": "the use case that grades whether every specified behaviour has a test also rises"}
+  ],
+  "disposition": "approve",
+  "made_up": false,
+  "pattern": {
+    "context": "A proposal states the grades it expects after the change, and claims that every use case it does not target keeps its grade.",
+    "problem": "The change also adds tests. A use case that grades the tests themselves, such as whether every specified behaviour has a test, moves too. The 'stays the same' claim is then wrong, and the check would fail on a correct change.",
+    "solution": "Before accepting 'the rest stay', check each untouched use case against everything the change adds, including tests and records, not only the code it targets. Move any that the additions affect into the list that rises.",
+    "consequences": "The check holds on the real result. The gain is stated as a lower bound, so the ranking against other proposals does not change."
+  },
+  "related": [
+    "wc-count-by-spec-definitions",
+    "wc-count-by-spec-definitions--2026-10-13-143312",
+    "wc-tests-miss-spec-behaviours",
+    "approve-wc-count-by-spec-definitions--2026-10-13-143312"
+  ],
+  "by": "user, played by claude-opus-5-5",
+  "status": "open"
+}

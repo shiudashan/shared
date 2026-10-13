@@ -1,0 +1,43 @@
+{
+  "id": "wc-tests-per-spec-behaviour",
+  "findings": [
+    "tests-miss-spec-behaviours (severity 2): the suite has 3 tests, all passing, but none covers the one-line output or --words, so a break in either passes it."
+  ],
+  "gain": "The prototype has no test for the output line, for --words, or for the exit status on unreadable input, so a break in any of them passes the suite. Three tests through main() close that. Behaviours with a test go from 3 to 5: the specification's four bullets plus the project's exit-status standard.",
+  "kind": "test",
+  "delta": "None. Output is stated in the opening sentence and example of the tool's specification, --words in its last bullet, and the exit status on unreadable input in the project's standards for every tool.",
+  "design": "In the tool's test file: test_output runs main([]) with stdin holding 'one two\\nthree\\n' and stdout captured. test_words_option runs main(['--words']) the same way. test_unreadable_input runs main([]) with stdin a UTF-8 text wrapper over the bytes b'\\xff\\n' and stderr captured. Released as the next prototype version.",
+  "tasks": [
+    "Add the three tests to the tool's test file.",
+    "Run the suite; all tests pass.",
+    "Break each behaviour once by hand in the tool's source and see its test fail, then restore.",
+    "Set the version, add the changelog entry, commit the tests, tag it."
+  ],
+  "check": "On v+1, all tests pass: test_output sees stdout '2 3 14\\n' and return 0; test_words_option sees stdout '3\\n' and return 0; test_unreadable_input sees return 2 and a non-empty stderr. Each test fails on a mutant of the tool's source: words joined by ',' instead of a space, --words ignored, and main() returning 0 on UnicodeDecodeError. Behaviours with a test: 5 of 5. The use case that grades whether every behaviour the specification names has a test rises from 0.7.",
+  "upsides": [
+    {"what": "named behaviours with a test", "amount": 2, "unit": "behaviours gained, 3 to 5 of 5"},
+    {"what": "mutants of main() caught", "amount": 3, "unit": "mutants, 0 to 3"}
+  ],
+  "downsides": [
+    {"what": "test code added", "amount": 25, "unit": "lines, about"},
+    {"what": "the rule 'every behaviour the specification names has a test' still has no enforcer", "amount": 1, "unit": "rule left to review"}
+  ],
+  "context": "The tool reads a text on standard input and prints its lines, words and characters on one line, or only its words with --words; Python 3.9, standard library only. Its entry point main(argv) returns the exit status. The project's standards for every tool set exit status 2 when input cannot be read, here input that is not UTF-8. v is the prototype version before the change and v+1 the one after. A use case is a run graded from 0 to 1. A mutant is a copy of the tool's source with one behaviour broken on purpose.",
+  "made_up": false,
+  "pattern": {
+    "context": "A command-line tool is built from a specification, under project-wide standards such as exit codes, and has a unit-test suite.",
+    "problem": "The tests call the inner functions, so behaviours at the program's edge (the output format, an option, the exit status on bad input) have no test. A break in any of them passes the suite.",
+    "solution": "List each behaviour the specification and the project's standards name. Give each a test through the entry point, with standard input supplied and standard output and error captured. Break each behaviour once on purpose and see its test fail.",
+    "consequences": "Every named behaviour has a test shown to catch its break, for a few lines of test code per behaviour. The rule that every named behaviour has a test is still kept by review, not by a tool."
+  },
+  "related": [
+    "wc-tests-miss-spec-behaviours",
+    "wc-tests-per-spec-behaviour--2026-10-13-143312",
+    "wc-tests-per-spec-behaviour--2026-10-13-143312--user",
+    "approve-wc-tests-per-spec-behaviour--2026-10-13-143312",
+    "wc-tests-per-spec-behaviour--f0-0.4--2026-10-13-143312",
+    "wc-count-by-spec-definitions"
+  ],
+  "by": "planner, played by claude-opus-5-5",
+  "status": "proposed"
+}

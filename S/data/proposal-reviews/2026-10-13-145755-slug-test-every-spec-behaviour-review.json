@@ -1,0 +1,33 @@
+{
+  "id": "2026-10-13-145755-slug-test-every-spec-behaviour-review",
+  "proposal": "Add tests to the code of a command-line tool, one for each behaviour the tool's plan names that had no test: one slug per line, an empty line kept in place, a last line without a newline, exit 0 on success, exit 2 with a message on standard error for input that is not UTF-8, a run of separators becoming one hyphen, and no hyphen at the start or end. The code and the plan do not change.",
+  "feedback": "A proposal that adds tests only and leaves the plan unchanged fits: the tool's plan and the rules shared by every tool in the project already name each behaviour, and the code passes the 6 matching checks. The grade gain is overstated for this proposal alone. The graded check of the tests against the plan gives weight 2 of 7 to tests of UTF-8 input, exit 0 and exit 2. It gives weight 3 of 7 to tests of accents, one slug per line, cutting at a hyphen and never ending in a hyphen. This proposal covers the first group, but from the second group only one slug per line. The other tests in that group come from the two fix proposals. Alone, this proposal raises the run from 0.29 to about 0.57. The run reaches 1.0 only together with the other two.\n\nTerms: the tool is a Python 3.9 program that reads one title per line on standard input and prints each title's URL slug, with an optional cap on the slug's length; cutting at a hyphen means the cap cuts the slug at the last hyphen that fits. The shared rules include that every behaviour a plan names has a test beside the code. A check is graded from 0 (worst) to 1 (best). The graded check gives its remaining weight 2 of 7 to the existing tests passing, which they do, so it stands at 2/7 = 0.29. The two fix proposals are one that keeps letters of every script and removes accents, and one that makes the length cap cut at the last hyphen that fits; each adds tests for its fix.",
+  "corrections": [
+    {
+      "field": "upsides: grade gain on the check of the tests against the plan",
+      "from": "0.71",
+      "to": "0.28 alone; 0.71 together with the fix proposal that keeps letters of every script and removes accents and the fix proposal that makes the length cap cut at the last hyphen that fits",
+      "reason": "The user's grade of that check: 2/7 now; this proposal adds the weight-2 group, 4/7 = 0.57; the weight-3 group needs the two fix proposals' tests."
+    }
+  ],
+  "disposition": "approve",
+  "made_up": false,
+  "pattern": {
+    "context": "Several proposals each add tests, and one check grades the tests by weighted groups, where a group earns its weight only when every test in it exists.",
+    "problem": "A proposal claims the gain of every group it touches, though some of those groups are completed only by tests from the other proposals.",
+    "solution": "Credit the proposal alone only with the groups it completes by itself, and state the joint gain separately, naming the proposals it needs.",
+    "consequences": "The claimed gain drops to what the proposal delivers alone. The approver sees which proposals must land together to reach the full grade."
+  },
+  "related": [
+    "2026-10-13-145755-slug-test-every-spec-behaviour",
+    "2026-10-13-145755-slug-tests-miss-spec-behaviours",
+    "2026-10-13-145755-slug-tests-beside-code-user",
+    "2026-10-13-145755-slug-letters-any-script",
+    "2026-10-13-145755-slug-max-cut-at-word",
+    "2026-10-13-145755-slug-test-every-spec-behaviour-user-review",
+    "2026-10-13-145755-slug-test-every-spec-behaviour-decision",
+    "2026-10-13-145755-slug-test-every-spec-behaviour-code-review"
+  ],
+  "by": "proposal-reviewer, played by claude-opus-5-5",
+  "status": "open"
+}
