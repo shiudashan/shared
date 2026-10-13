@@ -90,7 +90,7 @@ sync_file() {  # sync_file <file in shared> <file in the project>
     mkdir -p "$(dirname "$dp")"; cp "$n" "$dp"; ADDED+=("$d"); return 0
   fi
   cmp -s "$dp" "$n" && return 0                                             # already the same
-  if [ $inb = 0 ] && [[ $d == "$DATA_DIR/"* ]]; then   # an entry this layer sent up, accepted above
+  if [ $inb = 0 ] && [[ $d == "$DATA_DIR/"* ]] && [ -e "$P/S/outbox/${d#"$DATA_DIR/"}" ]; then  # sent up, accepted above
     jq '.upstream = "accepted"' "$dp" > "$TMP/acc" 2>/dev/null && cp "$TMP/acc" "$dp"
     KEPT+=("$d (accepted by the layer above; this layer's version kept)"); return 0
   fi
