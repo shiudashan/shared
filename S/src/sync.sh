@@ -100,6 +100,9 @@ $(cat "$n")" && MERGED+=("$d (joined)")
     return 0
   fi
   if cmp -s "$dp" "$b"; then cp "$n" "$dp"; UPDATED+=("$d"); return 0; fi  # not changed here
+  if [[ $d == *.json ]] && jq -e . "$dp" "$b" "$n" >/dev/null 2>&1; then  # JSON: one layout for all three
+    local f; for f in "$dp" "$b" "$n"; do jq --sort-keys . "$f" > "$TMP/norm" && cp "$TMP/norm" "$f"; done
+  fi
   if git merge-file -L project -L "shared ${BASE:0:12}" -L "shared ${NEW:0:12}" "$dp" "$b" "$n"; then
     MERGED+=("$d")
   else
