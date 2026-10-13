@@ -25,6 +25,8 @@ The message carries:
 
 The coder replaces each path and name of the lower layer by the layer above's, keeps the program's tests, and drops each part that only the lower layer uses.
 
+Before writing, read what the outbox `S/outbox/changes/` already holds. When a change there does the same job, revise that change, keeping its `id`, rather than writing a second one. When this change supersedes one there, set the earlier change's `status` to `retired` and its `superseded_by` to this change's `id`.
+
 The coder writes the change into the lower layer's outbox, as one JSON file at `S/outbox/changes/<id>.json`, with a short `id` that names the program, in this form:
 {"id": "...", "title": "<what the change adds>", "why": "<the job the program does, and why the layer above needs the job>", "files": [{"path": "...", "content": "..."}], "check": "<the command that runs the tests>"}
 
@@ -39,7 +41,7 @@ The message carries:
 
 The coder answers two questions.
 1. Can the coder tell from the files and the check that the program does the job the change states, and that the check tests the job?
-2. Does the program serve layers beyond the layer the program came from? On the leg `project` the entry carries no pattern; judge the entry without one.
+2. Does the program serve beyond the layer the program came from? The answer is yes when an agent of any role, in another component (on the leg `project`) or another project (on the leg `shared`), can use the program to do its own work better. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The coder accepts the change when both answers are yes, and drops the change otherwise. The reason names each no, in one or two sentences.
 

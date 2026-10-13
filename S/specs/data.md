@@ -10,8 +10,14 @@ gives its format. Each entry is one JSON file, named by its `id`.
   model, or the person.
 - `status`: where the entry stands. The values for each type are given below.
 - `decided` (when the status was set by someone other than the author): who set it, and when.
-- `upstream` (optional): `local`, or `candidate` for an entry that may serve the layer above.
-  The role that writes the entry sets it at birth (`upstream.md`).
+- `upstream` (optional): `local`; `candidate`, for an entry that could help an agent of any role
+  in another component or project do its work better; or `accepted`, once the layer above
+  accepted it. The role that writes the entry sets it at birth, and again at the step's submit
+  pass (`upstream.md`).
+- `related` (optional, on a sent entry): the ids of the entries it rests on or answers, such as
+  the proposal a decision decides.
+- `superseded_by` (on a retired entry): the id of the entry that replaced it. `retired` is a
+  status every type may take.
 - `made_up` (optional): `true` for an entry made up as an example, not taken from a run.
 - `pattern` (on an entry sent to `shared`): the entry in pattern form, `{"context", "problem",
   "solution", "consequences"}`.

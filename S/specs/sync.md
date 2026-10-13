@@ -66,7 +66,9 @@ An existing project follows sync.sh's intention where the script cannot run as i
 ## A component
 
 A component of a project, such as a prototype, gets its own S the same way, from the project's
-S. The component's S sits in `<component>/S/`, beside the component's plan and generations and
+S. The component copies the project's `sync.sh` unchanged to `<component>/S/src/sync.sh` and runs
+it with the component's root. The script sees that the root is a folder inside a project's
+repository, and acts as below. The component's S sits in `<component>/S/`, beside the component's plan and generations and
 outside every generation, so it lasts across generations.
 
 - **Source.** The component lives inside the project's repository, so it needs no submodule.

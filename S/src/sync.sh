@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Sync: brings shared's S into a project. The spec is shared/S/specs/sync.md.
+# Sync: brings the S of the layer above into a project or a component. The spec is
+# shared/S/specs/sync.md.
 #
-#   S/src/sync.sh <project root>
+#   S/src/sync.sh <project root>                 from shared, pinned as a submodule
+#   <component>/S/src/sync.sh <component root>   from the project's S, for a folder inside a project
 #
 # A project copies this file from shared/S/src/sync.sh to <project>/S/src/sync.sh, customises the
 # settings below and its own steps, and runs it. The first run copies shared's files into the
@@ -9,11 +11,12 @@
 # copy, with a three-way merge (git merge-file). The project's own changes are never overwritten.
 # Conflicts are left marked in the files, and the script exits with status 1.
 #
-# A component of a project (spec: sync.md, "A component") copies the project's sync.sh to
-# <component>/S/src/sync.sh and customises it: SHARED becomes the project's root, read from the
-# project's git history; the config lines and the survey leave MAP; the data lines name each type,
-# so the project's logs stay behind; the outbox is created empty; the first run writes the
-# component's own CLAUDE.md; and the customisation describes the component.
+# A component (sync.md, "A component") copies the project's sync.sh unchanged. The script sees
+# that its root is a folder inside a project's repository, and then reads the project's S from
+# the project's git history at the project's current commit; copies no config and no survey,
+# which the component inherits; leaves the project's logs and outbox behind and creates an empty
+# outbox; writes the component's own CLAUDE.md on the first run; and customises the agents and
+# the chain for the component.
 #
 # SYNC_NO_CLAUDE=1 skips the `claude -p` steps and prints what each would have done. Tests use it.
 #
@@ -23,12 +26,32 @@
 main() {
 set -euo pipefail
 
-P=$(cd "${1:?usage: sync.sh <project root>}" && pwd)
+P=$(cd "${1:?usage: sync.sh <project root> | <component root>}" && pwd)
 
 # --- Settings the project customises -------------------------------------------------------
+TOP=$(git -C "$P" rev-parse --show-toplevel 2>/dev/null || echo "$P")
+if [ "$TOP" != "$P" ]; then LAYER=component; else LAYER=project; fi
+DATA_DIR="S/data"             # the layer's data folder, relative to its root
+AGENTS_DIR="S/src/agents"     # the layer's agents, relative to its root
+TYPES=(use-cases run-records run-grades run-reviews proposals proposal-reviews decisions code-reviews)
+OUTBOX_TYPES=(use-cases run-grades run-reviews proposals proposal-reviews decisions code-reviews changes)
+if [ $LAYER = component ]; then
+SHARED="$TOP"                 # the layer above: the project's repository, at its current commit
+C=$(basename "$P"); PROJECT=$(basename "$TOP")
+GEN=$(ls -d "$P"/f[0-9]* 2>/dev/null | sed 's|.*/||' | sort -V | tail -1)  # the newest generation
+# What comes from where: "<path in the project>|<path in the component>". Folders end in "/".
+MAP=(
+  "S/src/sync.sh|S/src/sync.sh"
+  "S/src/upstream.sh|S/src/upstream.sh"
+  "S/src/step.sh|S/src/step.sh"
+  "S/src/chain.json|S/src/chain.json"
+  "S/specs/|S/specs/"
+  "S/src/agents/|$AGENTS_DIR/"
+)
+for t in "${TYPES[@]}"; do MAP+=("S/data/$t/|$DATA_DIR/$t/"); done
+JOINED=()
+else
 SHARED="$P/shared"            # shared, pinned as a git submodule
-DATA_DIR="S/data"             # the project's data folder, relative to the project root
-AGENTS_DIR="S/src/agents"     # the project's agents, relative to the project root
 # What comes from where: "<path in shared>|<path in the project>". Folders end in "/".
 MAP=(
   "S/src/sync.sh|S/src/sync.sh"
@@ -47,9 +70,10 @@ MAP=(
 )
 # Files joined with the project's own on the first run, rather than copied.
 JOINED=("CLAUDE.md" ".claude/settings.json")
+fi
 # -------------------------------------------------------------------------------------------
 
-STAMP="$P/S/.synced-from"     # the commit of shared this project was last synced to
+STAMP="$P/S/.synced-from"     # the commit of the layer above this layer was last synced to
 [ -d "$SHARED/.git" ] || [ -f "$SHARED/.git" ] || { echo "sync: no shared at $SHARED; pin it first (step 0)" >&2; exit 2; }
 NEW=$(git -C "$SHARED" rev-parse HEAD)
 BASE=""
@@ -65,7 +89,7 @@ ask() {  # ask <what> <prompt>: a judgement step, done by claude -p in the proje
   (cd "$P" && claude -p --permission-mode acceptEdits "$2") && return 0
   SKIPPED+=("$1 (claude -p failed)"); return 1
 }
-is_joined() { local j; for j in "${JOINED[@]}"; do [ "$j" = "$1" ] && return 0; done; return 1; }
+is_joined() { local j; for j in ${JOINED[@]+"${JOINED[@]}"}; do [ "$j" = "$1" ] && return 0; done; return 1; }
 files_at() {  # files_at <commit> <path>: the files under a path of shared at a commit
   [ -n "$1" ] && git -C "$SHARED" ls-tree -r --name-only "$1" -- "$2" || true
 }
@@ -147,9 +171,49 @@ for m in "${MAP[@]}"; do
   sync_entry "$s" "$d"
 done
 chmod +x "$P/.claude/hooks/"*.py "$P/S/src/upstream.sh" "$P/S/src/step.sh" 2>/dev/null || true
+if [ $LAYER = component ]; then
+  for t in "${OUTBOX_TYPES[@]}"; do
+    [ -e "$P/S/outbox/$t/.gitkeep" ] || { mkdir -p "$P/S/outbox/$t"; : > "$P/S/outbox/$t/.gitkeep"; ADDED+=("S/outbox/$t/"); }
+  done
+fi
 
-# 2.4 Programs: on the first run, each role's agent is customised for the project.
-if [ $RUN = first ]; then
+# 2.2 Config, for a component: on the first run, the component's own CLAUDE.md.
+if [ $LAYER = component ] && [ $RUN = first ] && [ ! -e "$P/CLAUDE.md" ]; then
+  ask "write CLAUDE.md" "Write CLAUDE.md in this folder, $C, a component of the project $PROJECT. \
+Claude Code also loads the project's CLAUDE.md (in the parent folder) in every session here, so \
+state only $C's own rules, and repeat nothing the parent states. In S's terms, $PROJECT is the \
+project M, and $C is one of its components, holding its own plan (M.p, spec/) and prototype (M.f, \
+its generations f0/, f1/ and so on). Draw the rules from README.md, spec/ and the project's spec: \
+what $C is, where its plan and generations sit, that S/ develops $C, and its release rules, in \
+the project's own form. Keep it short. Do not read obsolete/ or any archived copy." \
+  && ADDED+=("CLAUDE.md") || true
+fi
+
+# 2.4 Programs: on the first run, each role's agent is customised for the layer.
+if [ $RUN = first ] && [ $LAYER = component ]; then
+  for r in "$P/$AGENTS_DIR"/*/; do
+    [ -d "$r" ] || continue
+    role=$(basename "$r")
+    ask "customise $AGENTS_DIR/$role" "The agent in $AGENTS_DIR/$role/ was customised for \
+$PROJECT, the project. Customise it further for $C, the component of $PROJECT in this folder. \
+Read its role spec in S/specs/$role.md, CLAUDE.md here and in the parent folder, README.md, \
+spec/, and the current generation $GEN/. Edit prompt.md and settings.json in place so the agent \
+knows, as far as the role needs, $C as a whole: what $C is (in S's terms, $PROJECT is the project \
+M, and $C is one of its components, holding its own plan M.p in spec/ and its own prototype M.f \
+in its generations), how its generations are laid out, where a generation keeps its code and \
+tests, and the release rules. Add \"generation\": \"$GEN\" to settings.json, keep every key name \
+settings.json already has, write a generation's files as <generation>/<file>, and have prompt.md \
+refer to the current generation through that setting, so a new generation changes the setting \
+only. Do not read obsolete/. Keep the role's actions and data, and its Send and Receive duties, \
+as the spec gives them; $C's outbox is S/outbox/<type>/, and $PROJECT receives from it." || true
+  done
+  ask "customise S/src/chain.json" "Customise S/src/chain.json, the chain of S's step for $C, a \
+component of the project $PROJECT (S/specs/step.md, \"Triggering and chaining\"). Set \"layer\" \
+to two or three sentences a stranger needs: what $C is, and what its own terms mean. Set \"leg\" \
+to \"project\", the leg to the layer above. Set \"run_command\" to the command, run from this \
+folder, that runs $C's current generation $GEN on one use case. Leave the hand-offs and every \
+other setting as they are." || true
+elif [ $RUN = first ]; then
   for r in "$P/$AGENTS_DIR"/*/; do
     [ -d "$r" ] || continue
     role=$(basename "$r")
@@ -169,6 +233,9 @@ leg to the layer above. Set \"run_command\" to the command that runs the project
 use case, if the project has one, or leave it empty. Leave the hand-offs as they are." || true
 fi
 
+for f in "$P/$AGENTS_DIR"/*/settings.json "$P/S/src/chain.json"; do
+  [ ! -e "$f" ] || jq -e . "$f" >/dev/null 2>&1 || KEPT+=("${f#"$P/"} (not valid JSON; fix it)")
+done
 echo "$NEW" > "$STAMP"
 
 # 2.5 Report.

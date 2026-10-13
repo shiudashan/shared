@@ -7,8 +7,9 @@
 # For each type and each piece in <lower>/S/outbox/<type>/, the receiving agent of the role that
 # owns the type judges the piece from the piece alone, with the section "Receive" of
 # <upper>/S/src/agents/<role>/prompt.md, and accepts or drops the piece. upstream.sh copies each
-# accepted piece into <upper>/S/data/<type>/, skips a piece the upper layer already holds, and
-# prints a report. upstream.sh writes nothing to the lower layer.
+# accepted piece into <upper>/S/data/<type>/, and prints a report. A piece the upper layer
+# already holds unchanged is skipped; a changed one is judged again; a retired one retires the
+# upper layer's copy. upstream.sh writes nothing to the lower layer.
 #
 # Acceptance chains upward: when the upper layer has a layer above it (a "leg" in its
 # S/src/chain.json) and the receiving agent judged the piece general, the same role at the upper
@@ -48,7 +49,7 @@ UP_LAYER=$(jq -r '.layer // ""' "$U/S/src/chain.json" 2>/dev/null || echo "")
 if [ -n "$UP_LEG" ]; then LEG=project; else LEG=shared; fi
 echo "upstream: lower $L -> upper $U"
 
-ACCEPTED=() DROPPED=() SKIPPED=() FAILED=() SENT=()
+ACCEPTED=() DROPPED=() SKIPPED=() FAILED=() SENT=() RETIRED=()
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 
 receive_section() {  # receive_section <prompt.md> <words>: the "## Receive" section about <words>
@@ -95,7 +96,16 @@ for o in "${OWNERS[@]}"; do
     id=$(jq -r '.id // empty' "$piece" 2>/dev/null || true)
     [ -n "$id" ] || id=$(basename "$piece" .json)
     dest="$U/$DATA_DIR/$type/$id.json"
-    if [ -e "$dest" ]; then SKIPPED+=("$type/$id: already in $DATA_DIR/$type/"); continue; fi
+    if [ -e "$dest" ] && cmp -s "$piece" "$dest"; then SKIPPED+=("$type/$id: already in $DATA_DIR/$type/"); continue; fi
+    if [ "$(jq -r '.status // ""' "$piece")" = retired ]; then
+      if [ -e "$dest" ]; then
+        jq --arg by "$(jq -r '.superseded_by // ""' "$piece")" '.status = "retired" | .superseded_by = $by' "$dest" > "$TMP/ret" && cp "$TMP/ret" "$dest"
+        RETIRED+=("$type/$id")
+        up="$U/$OUTBOX_DIR/$type/$id.json"   # retirement chains upward too
+        [ ! -e "$up" ] || { jq '.status = "retired"' "$up" > "$TMP/ret" && cp "$TMP/ret" "$up"; }
+      fi
+      continue
+    fi
     if [ "${UPSTREAM_NO_CLAUDE:-}" = 1 ]; then SKIPPED+=("$type/$id: not judged (UPSTREAM_NO_CLAUDE=1)"); continue; fi
     if ! verdict=$(judge "$type" "$role" "$words" "$piece") || [ -z "$verdict" ]; then
       FAILED+=("$type/$id: the $role gave no verdict"); continue
@@ -118,6 +128,7 @@ say "accepted, copied into $DATA_DIR/" ${ACCEPTED[@]+"${ACCEPTED[@]}"}
 say "dropped" ${DROPPED[@]+"${DROPPED[@]}"}
 say "skipped" ${SKIPPED[@]+"${SKIPPED[@]}"}
 say "sent on, into $OUTBOX_DIR/" ${SENT[@]+"${SENT[@]}"}
+say "retired, superseded below" ${RETIRED[@]+"${RETIRED[@]}"}
 say "failed" ${FAILED[@]+"${FAILED[@]}"}
 echo "upstream: ${#ACCEPTED[@]} accepted, ${#DROPPED[@]} dropped, ${#SKIPPED[@]} skipped, ${#FAILED[@]} failed."
 [ ${#FAILED[@]} -eq 0 ]

@@ -29,6 +29,8 @@ The proposal reviewer revises the proposal review into the smallest form that st
 
 On the leg `shared`, the proposal reviewer also replaces each project term by the term's meaning: the proposal's id becomes what the proposal changes, a spec section becomes what the section says, and a project's name for a part of the program becomes the part's function. Where the point cannot stand without the project's domain, the proposal reviewer writes a made-up minimal instance with the same numbers and sets `made_up` to true. The proposal reviewer fills `pattern`: the context in which the point applies, the problem, the solution, and the consequences. On the leg `project`, the proposal reviewer leaves `pattern` empty.
 
+Before writing, read what the outbox `S/outbox/<type>/` already holds. When a piece there carries the same lesson as this entry, revise that piece, keeping its `id`, rather than writing a second one. When this entry supersedes a piece there, write this entry, and set the earlier piece's `status` to `retired` and its `superseded_by` to this entry's `id`. Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`.
+
 The proposal reviewer writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/proposal-reviews/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
 {"proposal": "<what the proposal changes>", "feedback": "...", "corrections": [{"field": "...", "from": "...", "to": "...", "reason": "..."}], "disposition": "approve" | "postpone" | "reject", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
@@ -43,7 +45,7 @@ The message carries:
 
 The proposal reviewer answers two questions.
 1. Can the proposal reviewer reach the review's point and disposition from the review alone? The proposal reviewer sets the disposition aside, reads the proposal and the feedback, and writes the point and the disposition the proposal reviewer would give. The answer is yes when the points name the same fault and the dispositions are the same word.
-2. Does the proposal review serve beyond the program the proposal review came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) proposal reviewer can use the proposal review as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
+2. Does the proposal review serve beyond the program the proposal review came from? The answer is yes when an agent of any role, in another component (on the leg `project`) or another project (on the leg `shared`), can use the proposal review to do its own work better: to write use cases, review runs, plan, review, decide, code or review code. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The proposal reviewer accepts the proposal review when both answers are yes, and drops the proposal review otherwise. The reason names each no and the part of the proposal review that causes the no, in one or two sentences.
 

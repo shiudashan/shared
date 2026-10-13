@@ -182,6 +182,10 @@ its prompt, its settings and the step so far, records each hand-off in the step'
 `step.sh` has the same role's sending agent revise the entry into `S/outbox/<type>/`
 (`upstream.md`).
 
+When the step completes, `step.sh` holds the submit pass: each role that wrote entries in the
+step tags them again with the whole step in view, and sends each candidate through its section
+"Send" into `S/outbox/<type>/` (`upstream.md`). The coder offers its reusable programs.
+
 `shared` gives the default chain. A project or a component customises its own `chain.json`:
 which hand-offs start automatically, which wait for a person, which runs a step includes. A layer
 can close the loop fully, or leave some hand-offs to a person. (GitHub Actions'

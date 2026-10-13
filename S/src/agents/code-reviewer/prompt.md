@@ -30,6 +30,8 @@ The code reviewer revises the code review into the smallest form that still show
 
 On the leg `shared`, the code reviewer also replaces each project term by the term's meaning: each file and function name becomes what the code does, and a project's name for a part of the program becomes the part's function. Where the point cannot stand without the project's domain, the code reviewer writes a made-up minimal instance with the same numbers and sets `made_up` to true. The code reviewer fills `pattern`: the context in which the point applies, the problem, the solution, and the consequences. On the leg `project`, the code reviewer leaves `pattern` empty.
 
+Before writing, read what the outbox `S/outbox/<type>/` already holds. When a piece there carries the same lesson as this entry, revise that piece, keeping its `id`, rather than writing a second one. When this entry supersedes a piece there, write this entry, and set the earlier piece's `status` to `retired` and its `superseded_by` to this entry's `id`. Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`.
+
 The code reviewer writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/code-reviews/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
 {"diff": "<what the diff changed>", "change": "<what the change request asked>", "comments": [{"lines": "...", "text": "...", "rule": "..."}], "outcome": "accept" | "request changes", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
@@ -44,7 +46,7 @@ The message carries:
 
 The code reviewer answers two questions.
 1. Can the code reviewer reach the outcome from the comments and the cited lines alone? The code reviewer sets the outcome aside, reads each comment and the comment's rule, and writes the outcome the code reviewer would give. The answer is yes when the outcomes are the same and each comment's rule covers the comment's fault.
-2. Does the code review serve beyond the program the code review came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) code reviewer can use the code review as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
+2. Does the code review serve beyond the program the code review came from? The answer is yes when an agent of any role, in another component (on the leg `project`) or another project (on the leg `shared`), can use the code review to do its own work better: to write use cases, review runs, plan, review, decide, code or review code. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The code reviewer accepts the code review when both answers are yes, and drops the code review otherwise. The reason names each no and the part of the code review that causes the no, in one or two sentences.
 

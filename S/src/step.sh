@@ -9,8 +9,9 @@
 # instructions (<layer>/S/src/agents/<role>/prompt.md, up to its first "## Send"), its settings,
 # the task, and the step so far, in one `claude -p` call in the layer root. The role writes its
 # entries into <layer>/S/data/<type>/. step.sh records the hand-off in the step's log,
-# <layer>/S/steps/<step id>/, and has the role's sending agent revise each new entry tagged
-# "upstream": "candidate" into <layer>/S/outbox/<type>/. step.sh stops at a hand-off that waits
+# <layer>/S/steps/<step id>/. When the step completes, step.sh holds the submit pass: each role
+# that wrote entries in the step retags them, with the whole step in view, and the role's sending
+# agent revises each candidate into <layer>/S/outbox/<type>/. step.sh stops at a hand-off that waits
 # for a person, and prints how to resume.
 #
 # STEP_NO_CLAUDE=1 skips the `claude -p` calls and records what each would have done. Tests use it.
@@ -145,7 +146,7 @@ while [ "$h" -lt "$N" ]; do
     cat "$LOG/log.jsonl" 2>/dev/null || echo "(nothing yet)"
     echo
     if [ ${#writes[@]} -gt 0 ]; then
-      echo "Write each entry you produce as one JSON file, $DATA_DIR/<type>/<entry id>.json, for the types: ${writes[*]}. Follow the format in $DATA_DIR/<type>/README.md and S/specs/data.md. Set \"by\" to \"$role\" with who plays it, and \"upstream\" to \"local\", or to \"candidate\" when the entry may serve the layer above."
+      echo "Write each entry you produce as one JSON file, $DATA_DIR/<type>/<entry id>.json, for the types: ${writes[*]}. Follow the format in $DATA_DIR/<type>/README.md and S/specs/data.md. Set \"by\" to \"$role\" with who plays it, and \"upstream\" to \"candidate\" when the entry could help an agent of any role in another component or project do its work better, or to \"local\" otherwise."
     fi
     [ -z "$RUN_KIND" ] || echo "The run command: $RUN_COMMAND. S_RUN_KIND=$RUN_KIND is set, so M.f logs as a $RUN_KIND run."
     echo "End your reply with the action's JSON, as your instructions give it."
@@ -161,13 +162,6 @@ while [ "$h" -lt "$N" ]; do
   new=$(comm -13 "$TMP/before" "$TMP/after" | sed "s|^$P/||" | paste -sd ' ' -)
   record "$name" "done" "${new:-no new entries}"
 
-  # The sending agent's first opportunity: each new candidate goes to the outbox.
-  if [ -n "$LEG" ]; then
-    for e in $(comm -13 "$TMP/before" "$TMP/after"); do
-      [ "$(jq -r '.upstream // ""' "$e" 2>/dev/null)" != candidate ] || send "$h" "$e"
-    done
-  fi
-
   # The propose-review loop: back to "loop" while the reviewer says again and rounds remain.
   back=$(jq -r ".handoffs[$h].loop // \"\"" "$CHAIN")
   if [ -n "$back" ]; then
@@ -179,6 +173,40 @@ while [ "$h" -lt "$N" ]; do
   h=$((h + 1))
 done
 record "end" "step complete" ""
+
+# The submit pass. Each role that wrote entries in this step looks at them again with the whole
+# step in view, sets each one's "upstream" tag, and sends each candidate to the outbox.
+if [ -n "$LEG" ]; then
+  for role in $(jq -r '[.handoffs[].role] | unique | .[]' "$CHAIN"); do
+    h=$(jq --arg r "$role" '[.handoffs[].role] | index($r)' "$CHAIN")
+    names=$(jq -r --arg r "$role" '[.handoffs[] | select(.role == $r) | .name] | join(" ")' "$CHAIN")
+    mine=""; for n in $names; do
+      mine="$mine $(jq -r --arg n "$n" 'select(.handoff == $n and .event == "done") | .detail' "$LOG/log.jsonl" | tr ' ' '\n' | grep '^S/data/' || true)"
+    done
+    mine=$(echo $mine)
+    coded=$(jq -r --arg r "$role" 'select(.event == "done") | .handoff' "$LOG/log.jsonl" | grep -qx code && [ "$role" = coder ] && echo 1 || true)
+    [ -n "$mine" ] || [ -n "$coded" ] || continue
+    if [ "$role" = coder ]; then
+      { section "$P/$AGENTS_DIR/coder/prompt.md" "program"
+        echo; echo "Lower layer: $LAYER"; echo "Leg: $LEG"; echo
+        echo "Program: offer each program the coder wrote in this step ($STEPS_DIR/$ID/, git log) that could help an agent of any role in another component or project. Write nothing when none could."
+      } > "$TMP/submit"
+      ask "$h" "$TMP/submit" "$LOG/submit-coder.reply" && record "submit" "coder offered" "see S/outbox/changes/" || record "submit" "coder failed" ""
+      continue
+    fi
+    { section "$P/$AGENTS_DIR/$role/prompt.md" ""
+      echo; echo "## Submit"; echo
+      echo "You play the $role at the end of step $ID. The step so far is in $STEPS_DIR/$ID/log.jsonl, and each role's reply in $STEPS_DIR/$ID/. Your entries from this step:"
+      for e in $mine; do echo "- $e"; done
+      echo
+      echo "For each of your entries, decide with the whole step in view whether it could help an agent of any role, in another component or project, do its own work better: to write use cases, review runs, plan, review, decide, code or review code. Set its \"upstream\" to \"candidate\" when it could, and to \"local\" when it could not, editing the file in place. Change nothing else. Reply with {\"candidates\": [\"<path>\"]}."
+    } > "$TMP/submit"
+    if ! ask "$h" "$TMP/submit" "$LOG/submit-$role.reply"; then record "submit" "failed" "the $role"; continue; fi
+    for e in $mine; do
+      [ "$(jq -r '.upstream // ""' "$P/$e" 2>/dev/null)" != candidate ] || send "$h" "$P/$e"
+    done
+  done
+fi
 echo "step: complete; the log is $LOG"
 }
 

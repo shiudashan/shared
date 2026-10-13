@@ -229,13 +229,17 @@ Linux stable process, Debian's patch tracker.)
 
 **The sending agent** holds the downstream layer's context, so the sending agent does the work
 that needs context:
+- submits whatever could help an agent of any role elsewhere, not only the sending role: a
+  piece is judged by its use to a to-agent, and the from-agent submits it. Which pieces a
+  to-agent later reads is a separate question;
 - tags each change or piece of data at birth, as local or as a candidate for the upstream layer
-  (Debian's DEP-3 `Forwarded:`; Android's `UPSTREAM:` tags). For a change, the planner writes the
-  tag in the proposal (step 2) and the decision maker confirms the tag (step 4);
+  (Debian's DEP-3 `Forwarded:`; Android's `UPSTREAM:` tags), and tags it again at the step's
+  submit pass, when the whole step shows what the piece was worth;
 - tracks what the downstream layer carries, and raises a candidate left unsent too long as a
   finding;
 - collects, removes duplicates and clusters near duplicates against what the sending agent has
-  already sent (section 6);
+  already sent, in its outbox: one lesson is one piece, revised in place, and a piece that
+  supersedes another retires it (section 6);
 - revises the content into the upstream layer's terms (section 7), and sends the piece.
 
 **The receiving agent** lacks the downstream layer's context, so the receiving agent judges each
