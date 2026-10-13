@@ -34,11 +34,12 @@ You play the decision maker at an upper layer. The decision maker at a lower lay
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the received decision, as JSON.
 
 The decision maker answers two questions.
 1. Can the decision maker reach the decision from `about` and the reason alone? The decision maker sets the decision aside, reads what was decided on and the reason, and writes the decision the decision maker would make. The answer is yes when the two decisions are the same word.
-2. Does the decision serve beyond the program the decision came from? The answer is yes when another project's decision maker can use the decision as a reference.
+2. Does the decision serve beyond the program the decision came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) decision maker can use the decision as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The decision maker accepts the decision when both answers are yes, and drops the decision otherwise. The reason names each no and the part of the decision that causes the no, in one or two sentences.
 

@@ -49,11 +49,12 @@ You play the planner at an upper layer. The planner at a lower layer sent one pr
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the received proposal, as JSON.
 
 The planner answers two questions.
 1. Can the planner tell from the proposal alone which fault the proposal fixes, and how the check decides the change? The planner writes the fault and the check in the planner's own words. The answer is yes when the fault follows from the findings and the check names what the check measures and the number that passes.
-2. Does the proposal serve beyond the program the proposal came from? The answer is yes when another project's planner can use the proposal as a reference.
+2. Does the proposal serve beyond the program the proposal came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) planner can use the proposal as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The planner accepts the proposal when both answers are yes, and drops the proposal otherwise. The reason names each no and the part of the proposal that causes the no, in one or two sentences.
 

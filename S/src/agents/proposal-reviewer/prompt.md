@@ -38,11 +38,12 @@ You play the proposal reviewer at an upper layer. The proposal reviewer at a low
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the received proposal review, as JSON.
 
 The proposal reviewer answers two questions.
 1. Can the proposal reviewer reach the review's point and disposition from the review alone? The proposal reviewer sets the disposition aside, reads the proposal and the feedback, and writes the point and the disposition the proposal reviewer would give. The answer is yes when the points name the same fault and the dispositions are the same word.
-2. Does the proposal review serve beyond the program the proposal review came from? The answer is yes when another project's proposal reviewer can use the proposal review as a reference.
+2. Does the proposal review serve beyond the program the proposal review came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) proposal reviewer can use the proposal review as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The proposal reviewer accepts the proposal review when both answers are yes, and drops the proposal review otherwise. The reason names each no and the part of the proposal review that causes the no, in one or two sentences.
 

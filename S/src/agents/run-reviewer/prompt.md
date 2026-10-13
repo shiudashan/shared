@@ -43,11 +43,12 @@ You play the run reviewer at an upper layer. A run reviewer at a lower layer sen
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the received run review, as JSON.
 
 The run reviewer answers two questions.
 1. Can the run reviewer reach the finding's verdict and severity from the finding alone? The run reviewer reads the context, the symptom and the reference, sets the finding and the severity aside, and writes the finding and the severity the run reviewer would give. The answer is yes when the run reviewer's finding names the same fault, the symptom supports the finding's numbers, and the severities differ by at most 1.
-2. Does the finding serve beyond the program the finding came from? The answer is yes when the fault can recur in another program, and a run reviewer of another project can use the finding as a reference.
+2. Does the finding serve beyond the program the finding came from? The answer is yes when the fault can recur in another program, and a run reviewer of another component (on the leg `project`) or of another project (on the leg `shared`) can use the finding as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The run reviewer accepts the finding when both answers are yes, and drops the finding otherwise. The reason names each no and the part of the finding that causes the no, in one or two sentences.
 

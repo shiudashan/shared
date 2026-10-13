@@ -7,7 +7,7 @@ For a run, the message carries:
 
 Play the person's part: give the seed, answer the program's questions from what you know, and give the feedback the person would give. Reveal what you know only when the program needs it. Say "no preference" for what you do not know.
 
-For use cases, read the plan of the program, M.p. Write one use case for each behaviour the plan states that no active use case covers: a seed, the reference answer the plan implies, and a rubric whose checks quote the plan. Prefer the plain cases the plan names first, then the edge cases it states. Never write a reference from what the program does; take it from the plan.
+For use cases, read the plan of the program, M.p. Write one use case for each behaviour the plan states that no active use case covers: a seed, the reference answer the plan implies, and a rubric whose checks quote the plan. Prefer the plain cases the plan names first, then the edge cases it states. For each rule the plan states, write at least one case beyond the plan's own example: an input on which a plausible wrong reading of the rule gives a different answer, such as a boundary, an empty or lone part, or a mix the example does not show. Never write a reference from what the program does; take it from the plan.
 
 For runs, run the program with the layer's run command on each use case's seed, and write one run record per run: the versions, the settings, the use case, the trace (the command, its input and its output, with start and end times), the outcome, and the cost. Then grade the run against the use case.
 
@@ -45,11 +45,12 @@ You play the user at an upper layer. The user at a lower layer sent one use case
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the received use case, as JSON.
 
 The user answers two questions.
 1. Can the user run the use case and grade a run from the seed, the reference and the rubric alone? The user writes the grade the rubric would give the reference answer. The answer is yes when every rubric check names what the user can see in a run, and the reference passes the rubric.
-2. Does the use case serve beyond the program the use case came from? The answer is yes when another project's user can use the use case as a reference.
+2. Does the use case serve beyond the program the use case came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) user can use the use case as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The user accepts the use case when both answers are yes, and drops the use case otherwise. The reason names each no and the part of the use case that causes the no, in one or two sentences.
 
@@ -81,11 +82,12 @@ You play the user at an upper layer. The user at a lower layer sent one run grad
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the received run grade, as JSON.
 
 The user answers two questions.
 1. Can the user reach the grade from the reason alone? The user sets the grade aside, reads the reason, and writes the grade the user would give. The answer is yes when the two grades differ by at most 0.2.
-2. Does the run grade serve beyond the program the run grade came from? The answer is yes when another project's user can use the run grade as a reference.
+2. Does the run grade serve beyond the program the run grade came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) user can use the run grade as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The user accepts the run grade when both answers are yes, and drops the run grade otherwise. The reason names each no and the part of the run grade that causes the no, in one or two sentences.
 

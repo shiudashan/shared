@@ -104,6 +104,13 @@ while [ "$h" -lt "$N" ]; do
   run=$(jq -r ".handoffs[$h].run // \"\"" "$CHAIN")
   writes=(); while IFS= read -r w; do writes+=("$w"); done < <(jq -r ".handoffs[$h].writes[]" "$CHAIN")
 
+  # A hand-off whose needed types gained no entry earlier in this step has nothing to work on.
+  needs=$(jq -r ".handoffs[$h].needs // [] | join(\" \")" "$CHAIN")
+  if [ -n "$needs" ]; then
+    got=""; for t in $needs; do grep -q "\"detail\":\"[^\"]*S/data/$t/" "$LOG/log.jsonl" 2>/dev/null && got=1; done
+    if [ -z "$got" ]; then record "$name" "skipped" "no new $needs in this step"; h=$((h + 1)); continue; fi
+  fi
+
   # A hand-off that waits for a person stops the step, unless the person resumed right here.
   if [ "$start" = person ] && [ "$name" != "$FROM" ]; then
     record "$name" "waits for a person" "the $role"

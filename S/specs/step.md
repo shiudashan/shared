@@ -163,6 +163,11 @@ entries into the layer's `S/data/<type>/`, and the next role takes them from the
 | merge | coder | the merge, in the step's log | the user, for runs after release, or the next step's run reviewer |
 | runs after release | user | run records, run grades | the next step's run reviewer |
 
+A hand-off may name the types it needs. `step.sh` skips the hand-off when none of those types
+gained an entry earlier in the same step: the planner proposes only from new findings, and the
+coder codes only after new decisions. A step that finds nothing new ends after monitor, at the
+cost of the runs and monitor alone.
+
 Each hand-off starts in one of two ways:
 - **automatically**, when the previous role's entries arrive;
 - **by a person**, who reads the entries, and starts the next role by hand. A person can also

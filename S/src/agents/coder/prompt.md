@@ -34,11 +34,12 @@ You play the coder at an upper layer. The coder at a lower layer sent one change
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the change's id, title, why, files and check, as JSON.
 
 The coder answers two questions.
 1. Can the coder tell from the files and the check that the program does the job the change states, and that the check tests the job?
-2. Does the program serve layers beyond the layer the program came from?
+2. Does the program serve layers beyond the layer the program came from? On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The coder accepts the change when both answers are yes, and drops the change otherwise. The reason names each no, in one or two sentences.
 

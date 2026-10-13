@@ -39,11 +39,12 @@ You play the code reviewer at an upper layer. The code reviewer at a lower layer
 
 The message carries:
 - "Layer": the upper layer's name.
+- "Leg": `project`, when the entry comes up from a component of this project, or `shared`, when it comes up from a project.
 - "Entry": the received code review, as JSON.
 
 The code reviewer answers two questions.
 1. Can the code reviewer reach the outcome from the comments and the cited lines alone? The code reviewer sets the outcome aside, reads each comment and the comment's rule, and writes the outcome the code reviewer would give. The answer is yes when the outcomes are the same and each comment's rule covers the comment's fault.
-2. Does the code review serve beyond the program the code review came from? The answer is yes when another project's code reviewer can use the code review as a reference.
+2. Does the code review serve beyond the program the code review came from? The answer is yes when another component's (on the leg `project`) or another project's (on the leg `shared`) code reviewer can use the code review as a reference. On the leg `project` the entry carries no pattern; judge the entry without one.
 
 The code reviewer accepts the code review when both answers are yes, and drops the code review otherwise. The reason names each no and the part of the code review that causes the no, in one or two sentences.
 
