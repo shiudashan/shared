@@ -24,7 +24,8 @@ customisations.
    3. **Data.** Each `shared/S/data/<type>/` goes to `<project>/S/data/<type>/`. Each
       `shared/S/outbox/<type>/` goes to `<project>/S/outbox/<type>/`, empty but for a `.gitkeep`,
       so the project's sending agents find the outbox (`upstream.md`).
-   4. **Programs.** `shared/S/src/upstream.sh` goes to `<project>/S/src/upstream.sh`. Each
+   4. **Programs.** `shared/S/src/upstream.sh`, `step.sh` and `chain.json` go to
+      `<project>/S/src/`. Each
       `shared/S/src/agents/<role>/` goes to `<project>/S/src/agents/<role>/`. Then a
       `claude -p` step per role customises the agent for the project as a whole: what the
       project is, how the project lays out its prototypes and their generations, the project's
@@ -56,6 +57,32 @@ A later run starts when the project moves the pin: `git submodule update --remot
 is the base of the three-way merge. The first run is the run with no `.synced-from`.
 
 An existing project follows sync.sh's intention where the script cannot run as it stands.
+
+## A component
+
+A component of a project, such as a prototype, gets its own S the same way, from the project's
+S. The component's S sits in `<component>/S/`, beside the component's plan and generations and
+outside every generation, so it lasts across generations.
+
+- **Source.** The component lives inside the project's repository, so it needs no submodule.
+  The component's `sync.sh` reads the project's `S/` from the project's git history at the
+  project's current commit: `SHARED` is the project's root, and the paths keep their names,
+  since the project's `S/` mirrors shared's.
+- **Config.** Claude Code loads the project's `CLAUDE.md` and `.claude/` in every session inside
+  the component, so the component's sync copies neither. Its first run writes
+  `<component>/CLAUDE.md` with the component's own rules only, by a `claude -p` step.
+- **Documents and data.** The specs and each data type's folder are copied; the project's survey
+  is read in place. The project's own logs and outbox stay in the project, and the component gets
+  an empty outbox of its own, `<component>/S/outbox/<type>/`.
+- **Programs.** Each agent, already customised for the project, is customised further for the
+  component as a whole: what it is, its plan, how its generations are laid out, and its release
+  rules. Each agent's `settings.json` names the current generation in `generation`, so a new
+  generation changes the setting only. `chain.json` is customised for the component (`step.md`).
+- **Upstream.** The project runs its own `upstream.sh <project> <component>` to receive from the
+  component's outbox.
+
+A project or a component that was developed by other means is prepared first: its plan in
+`spec/`, its README, and its old material moved aside. Sync then makes S its developer.
 
 ## Sources
 

@@ -9,6 +9,12 @@
 # copy, with a three-way merge (git merge-file). The project's own changes are never overwritten.
 # Conflicts are left marked in the files, and the script exits with status 1.
 #
+# A component of a project (spec: sync.md, "A component") copies the project's sync.sh to
+# <component>/S/src/sync.sh and customises it: SHARED becomes the project's root, read from the
+# project's git history; the config lines and the survey leave MAP; the data lines name each type,
+# so the project's logs stay behind; the outbox is created empty; the first run writes the
+# component's own CLAUDE.md; and the customisation describes the component.
+#
 # SYNC_NO_CLAUDE=1 skips the `claude -p` steps and prints what each would have done. Tests use it.
 #
 # The whole script is one function, so bash reads all of it before it runs. Step 1 may then
@@ -27,6 +33,8 @@ AGENTS_DIR="S/src/agents"     # the project's agents, relative to the project ro
 MAP=(
   "S/src/sync.sh|S/src/sync.sh"
   "S/src/upstream.sh|S/src/upstream.sh"
+  "S/src/step.sh|S/src/step.sh"
+  "S/src/chain.json|S/src/chain.json"
   "survey/|S/survey/"
   "S/specs/|S/specs/"
   "S/config/CLAUDE.md|CLAUDE.md"
@@ -126,7 +134,7 @@ for m in "${MAP[@]}"; do
   [ "$d" = "S/src/sync.sh" ] && continue        # handled in step 1
   sync_entry "$s" "$d"
 done
-chmod +x "$P/.claude/hooks/"*.py "$P/S/src/upstream.sh" 2>/dev/null || true
+chmod +x "$P/.claude/hooks/"*.py "$P/S/src/upstream.sh" "$P/S/src/step.sh" 2>/dev/null || true
 
 # 2.4 Programs: on the first run, each role's agent is customised for the project.
 if [ $RUN = first ]; then
@@ -142,6 +150,11 @@ single prototype or generation, and point to no folder inside one: the project's
 what is specific to a generation. Do not read obsolete/ or any archived copy. Keep the role's \
 actions and data as the spec gives them." || true
   done
+  ask "customise S/src/chain.json" "Customise S/src/chain.json, the chain of S's step for this \
+project (S/specs/step.md, \"Triggering and chaining\"). Set \"layer\" to two or three sentences \
+a stranger needs: what the project is, and what its own terms mean. Set \"leg\" to \"shared\", the \
+leg to the layer above. Set \"run_command\" to the command that runs the project's program on one \
+use case, if the project has one, or leave it empty. Leave the hand-offs as they are." || true
 fi
 
 echo "$NEW" > "$STAMP"

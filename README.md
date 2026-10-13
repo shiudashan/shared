@@ -9,8 +9,10 @@ What every project shares: a development system, S, and the surveys it rests on.
   - `S/data/` holds one folder per type of data, each with its format.
   - `S/config/` holds the configuration for Claude Code: `CLAUDE.md` with the general working
     rules, and `.claude/` with the settings, hooks and skills.
-  - `S/src/` holds the programs: `sync.sh`, the sync workflow, and `agents/`, one folder per role
-    with the role's prompt and settings.
+  - `S/src/` holds the programs: `sync.sh`, the sync workflow; `upstream.sh`, which pulls a lower
+    layer's outbox; `step.sh` and `chain.json`, which play one step of S hand-off by hand-off; and
+    `agents/`, one folder per role with the role's prompt and settings.
+  - `S/outbox/` holds one folder per type for the pieces a layer sends to the layer above.
 - `survey/` holds surveys of industrial and research practice.
 
 ## How a project syncs from shared
@@ -24,3 +26,6 @@ What every project shares: a development system, S, and the surveys it rests on.
 To take later changes, move the pin (`git submodule update --remote shared`) and run
 `S/src/sync.sh .` again. It merges shared's changes into the project's copies with a three-way merge,
 and leaves the project's own changes in place. The spec is `S/specs/sync.md`.
+
+A component of a project gets its own S the same way, from the project's S (`S/specs/sync.md`,
+"A component"). To run a step of S on a layer: `S/src/step.sh .` (`S/specs/step.md`).

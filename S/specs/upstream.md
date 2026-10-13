@@ -1,6 +1,6 @@
 # Upstream
 
-Upstream carries a role's work from a layer to the layer above it: from a generation to its
+Upstream carries a role's work from a layer to the layer above it: from a component to its
 project (leg 3), and from a project to `shared` (leg 4). Sync (`sync.md`) carries work down;
 upstream carries work up. One pair of programs serves every upper and lower pair of layers:
 `S/src/sync.sh` down, `S/src/upstream.sh` up.
@@ -24,6 +24,10 @@ layer's context. The sending agent picks each piece that serves beyond the lower
 the piece for the layer above, and writes the revised piece into the lower layer's outbox:
 `<lower>/S/outbox/<type>/<id>.json`. Git keeps the outbox. A piece stays in the outbox after
 upstream.sh reads the piece.
+
+The role tags each entry at birth, `"upstream": "local"` or `"upstream": "candidate"` (`data.md`).
+`step.sh` gives the sending agent its first opportunity: as soon as the role writes a candidate,
+`step.sh` hands the entry to the same role's section "Send" (`step.md`).
 
 The sending agent revises each piece into the smallest form that still shows the piece's point,
 plus the context a stranger needs. The sending agent keeps the evidence and the verdict word for

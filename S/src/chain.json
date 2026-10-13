@@ -1,0 +1,29 @@
+{
+  "layer": "",
+  "leg": "",
+  "rounds": 2,
+  "run_command": "",
+  "claude_flags": ["--permission-mode", "acceptEdits"],
+  "handoffs": [
+    {"name": "monitor", "step": 1, "role": "run-reviewer", "writes": ["run-reviews"], "start": "auto",
+     "do": "Read the run records and the code reviews not yet reviewed, and write findings."},
+    {"name": "propose", "step": 2, "role": "planner", "writes": ["proposals"], "start": "auto",
+     "do": "Write change proposals from the open findings, quantify each one's upsides and downsides, and order them. In a later round, revise them from the proposal reviews."},
+    {"name": "review", "step": 3, "role": "proposal-reviewer", "writes": ["proposal-reviews"], "start": "auto", "loop": "propose",
+     "do": "Review the proposals at the top of the order. Say in the step's reply whether further review can still materially change them: \"loop\": \"again\" or \"done\"."},
+    {"name": "user-review", "step": 4, "role": "user", "writes": ["proposal-reviews"], "start": "auto",
+     "do": "Review the reviewed proposals, and give feedback and numerical corrections."},
+    {"name": "decide", "step": 4, "role": "decision-maker", "writes": ["decisions"], "start": "person",
+     "do": "Approve some proposals as change requests, and postpone or reject the others, each with its reason."},
+    {"name": "code", "step": 5, "role": "coder", "writes": [], "start": "auto",
+     "do": "Write the approved change requests on a branch, in order. Run each one's gates, and report each result in the step's reply."},
+    {"name": "trial-runs", "step": 5, "role": "user", "writes": ["run-records", "run-grades"], "start": "auto", "run": "trial",
+     "do": "Make trial runs of the candidate v+1, side by side with v when both can run, on the active use cases, with the run command. Grade each run."},
+    {"name": "code-review", "step": 6, "role": "code-reviewer", "writes": ["code-reviews"], "start": "auto",
+     "do": "Review the diff of each change the coder passed, and accept the code or request changes."},
+    {"name": "release", "step": 7, "role": "decision-maker", "writes": ["decisions"], "start": "person",
+     "do": "Release v+1 or keep v, with the code reviews in hand, and with the graded trial runs when there are any."},
+    {"name": "runs-after-release", "step": 7, "role": "user", "writes": ["run-records", "run-grades"], "start": "auto", "run": "true",
+     "do": "Run the released version on the active use cases, with the run command. Grade each run."}
+  ]
+}

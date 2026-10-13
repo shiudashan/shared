@@ -121,6 +121,57 @@ A release goes to developers. A released M.f is expected to be fit for developer
 Runs after a release, by real users, developers, the user role or automation, on use cases
 inside or outside M's dataset, may happen at any time. Their records go to step 1.
 
+## Runs inside a step
+
+A step may include runs at two points, and may include none.
+
+- **Before release, trial runs.** After the coder's step 5, a simulated developer (the user role)
+  or the person makes one or more trial runs of the candidate v+1, side by side with v when both
+  can run. A trial run logs more than a true run: the run sets `S_RUN_KIND=trial`, and M.f
+  raises its logging when it sees it.
+- **After release, trial runs or true runs.** After step 7, simulated users (the user role) or
+  real users run v+1. The user role grades the runs it makes.
+
+Each run leaves a run record in `S/data/run-records/`, and the run reviewer reads it at the next
+step 1. A layer that has no way to run M.f yet leaves its run command empty, and its steps include
+no runs.
+
+## Triggering and chaining
+
+A chain is the order of the step's hand-offs. At each hand-off, the role that finishes writes its
+entries into the layer's `S/data/<type>/`, and the next role takes them from there.
+
+| Step | Role | Writes | Next |
+|---|---|---|---|
+| 1. monitor | run reviewer | run reviews | planner |
+| 2. propose | planner | proposals | proposal reviewer |
+| 3. review | proposal reviewer | proposal reviews | planner, until the loop ends; then the user |
+| 4. decide | user, then decision maker | proposal reviews, then decisions | coder |
+| 5. code | coder | the change, and its gates' results in the step's log | the user, for trial runs, or the code reviewer |
+| trial runs | user | run records, run grades | code reviewer |
+| 6. code review | code reviewer | code reviews | decision maker |
+| 7. release | decision maker | a release decision | the user, for runs after release, or the next step's run reviewer |
+| runs after release | user | run records, run grades | the next step's run reviewer |
+
+Each hand-off starts in one of two ways:
+- **automatically**, when the previous role's entries arrive;
+- **by a person**, who reads the entries, and starts the next role by hand. A person can also
+  play the role, writing the entries in the role's place.
+
+`S/src/chain.json` holds the layer's chain: each hand-off, its role, what the role writes, how
+the hand-off starts, how many rounds the propose-review loop may take, the layer's run command,
+and the leg to the layer above. `S/src/step.sh <layer root>` plays the chain. It gives each role
+its prompt, its settings and the step so far, records each hand-off in the step's log
+`S/steps/<step id>/`, and stops where a hand-off waits for a person. `step.sh <layer root>
+--from <hand-off>` resumes there. When a role writes an entry tagged `"upstream": "candidate"`,
+`step.sh` has the same role's sending agent revise the entry into `S/outbox/<type>/`
+(`upstream.md`).
+
+`shared` gives the default chain. A project or a component customises its own `chain.json`:
+which hand-offs start automatically, which wait for a person, which runs a step includes. A layer
+can close the loop fully, or leave some hand-offs to a person. (GitHub Actions'
+`workflow_dispatch` beside event triggers; manual approval gates in CI/CD pipelines.)
+
 ## Retrospective and curation
 
 Two activities sit beside the loop rather than in its sequence. Each is placed where its input

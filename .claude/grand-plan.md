@@ -1,16 +1,17 @@
-# f5: from human-driven to AI-driven development
+# S: from human-driven to AI-driven development
 
 ## Context
 
-f4 was the last generation of f that the person, the Director, drove. From f5 on, an AI-driven
-development system does the development, and the person labels. This plan is the frame for that
-work, read top-down. The plan aims at the grand vision, knowing the build will fall short of the
-vision for a while.
+Projects and their components have been developed by people driving AI assistants by hand. From
+now on a development system, S, does the development, and the person labels. A project or a
+component that was developed by other means is first prepared, and then synced, so that S
+develops it from then on and learns across iterations, projects and many projects. This plan is
+the frame for that work, read top-down. The plan aims at the grand vision, knowing the build will
+fall short of the vision for a while.
 
 Content moves through four legs: sync from `shared` to a project (1), sync from the project to a
-generation (2), upstream from the generation to the project (3), and upstream from the project to
-`shared` (4). Leg 1 is built and has run on N2S. This revision adds what the surveys of
-upstreaming, data curation and example context found for legs 3 and 4.
+component (2), upstream from the component to the project (3), and upstream from the project to
+`shared` (4).
 
 The disciplines throughout:
 - Known best practice first. Each detail names the practice it follows, and how closely.
@@ -19,8 +20,8 @@ The disciplines throughout:
 ## 1. The vision
 
 A person says what the person wants, and then only labels. A development system (S) builds,
-reviews and improves a project (M), which contains a plan (M.p) and a prototype (M.f). S serves
-many M's. As S is invoked on an M, S improves M.p and M.f, and S also improves S's own parts.
+reviews and improves a project (M). A project holds one or more components, and each component
+contains a plan (M.p) and a prototype (M.f). S serves many M's. As S is invoked on an M, S improves M.p and M.f, and S also improves S's own parts.
 
 S iterates over selected improvements, from version v to version v+1. More precisely, S moves
 M.p.v and M.f.v to M.p.v+1 and M.f.v+1, and moves S's own parts to their next versions. A
@@ -43,9 +44,10 @@ Each of S's parts sits in one of three categories, or layers:
   commercially.
 - **In-project:** S initializes in-project parts when an M starts. In-project parts evolve as
   the M goes. Content that proves general enough is elevated to pan-project.
-- **In-iteration:** S initializes in-iteration parts when a major iteration of an M starts. A
-  major iteration is a generation, such as f5. In-iteration parts survive only that iteration.
-  Content that proves general enough is elevated to in-project.
+- **In-iteration:** S initializes in-iteration parts when a component of an M comes under S.
+  The in-iteration parts sit beside the component's generations, such as f5, outside each one,
+  and serve each major iteration in turn. Content that proves general enough is elevated to
+  in-project.
 
 ## 2. Spec-driven development and incremental development
 
@@ -136,6 +138,22 @@ with whatever runs exist, and with none.
 Runs after a release, by real users, developers or automation, on items inside or outside M's
 dataset, may happen at any time, and their records go to step 1.
 
+**Runs inside a step.** A step may include runs at two points, and may include none.
+- Before release, a simulated developer or the person makes one or more trial runs of the
+  candidate v+1. A trial run logs more than a true run does.
+- After release, simulated users or real users make one or more trial runs or true runs of v+1.
+
+**Triggering and chaining.** A person can start each step by hand, or an event can start it
+automatically, such as the previous step's output arriving. At each hand-off, the role that
+finishes writes its output into the layer's `S/data/<type>/`, and the next role takes the output
+from there. `step.sh` plays the chain: it hands each step to the step's role, records each
+hand-off, and stops where the chain waits for a person. `chain.json` gives the chain, and
+`shared` gives the default chain. A project or a component customises how its
+steps chain together: which hand-offs pass automatically, which wait for a person, and which
+runs the step includes. A layer can close the loop fully, or leave some hand-offs to a person.
+(GitHub Actions' `workflow_dispatch` beside event triggers; manual approval gates in CI/CD
+pipelines.)
+
 Two activities sit beside the loop rather than in its sequence, each placed where its input
 appears:
 - **Retrospective** looks at how S itself worked. S holds one retrospective per loop, after
@@ -168,15 +186,24 @@ shared/                       the pan-project layer, a public GitHub repository
   S/specs/                    mantras, habits, building, versioning, step, data, sync, one per role
   S/config/                   CLAUDE.md, .claude/ (settings.json, hooks/, skills/)
   S/data/<type>/              one folder per data type, with its format and general samples
-  S/src/                      sync.sh, agents/<role>/ (each role's prompt, settings, code)
+  S/outbox/<type>/            empty: shared is the top layer
+  S/src/                      sync.sh, upstream.sh, step.sh, chain.json,
+                              agents/<role>/ (each role's prompt, settings, code)
 
 N2S/                          the project
   shared/                     shared, as a git submodule, pinned per project
   CLAUDE.md, .claude/         the project's config
-  S/                          the in-project layer: survey/, specs/, data/, src/
-  prototype2/f5/              the current generation
-    S/                        the in-iteration layer, built by the project's own sync
+  S/                          the in-project layer: survey/, specs/, data/, outbox/, src/
+  prototype2/                 a component
+    CLAUDE.md                 the component's own rules
+    spec/                     M.p
+    f0/ … f5/                 M.f, one folder per generation
+    S/                        the in-iteration layer, built by the component's own sync:
+                              specs/, data/, outbox/, src/
 ```
+
+Each layer's sending agents write into that layer's `S/outbox/<type>/`. The layer above pulls
+from it: N2S pulls `prototype2/S/outbox/`, and `shared` pulls `N2S/S/outbox/`.
 
 Each layer holds whole working copies, customised for that layer. (Kustomize's base and
 overlays; Copier; git submodules.)
@@ -186,8 +213,9 @@ overlays; Copier; git submodules.)
 `shared/S/specs/sync.md` is the spec. A project pins `shared` as a submodule, copies `sync.sh`,
 customises it, and runs it. `sync.sh` copies the documents, then the config, then the data, then
 the programs, and reports. A later run merges `shared`'s changes into the project's copies with a
-three-way merge, keeping the project's own changes. Leg 2 is the project's own customised
-`sync.sh`, which builds a generation the same way from the project's layer.
+three-way merge, keeping the project's own changes. Leg 2 is a component's own customised
+`sync.sh`, which builds the component's S the same way from the project's layer, read from the
+project's git history at a recorded commit.
 
 ## 5. Upstream, legs 3 and 4
 
@@ -221,6 +249,10 @@ becomes the sending agent for that piece toward the next layer up, with its own 
 **Back down.** At the downstream layer's next sync, the downstream coder replaces the local copy
 with the accepted upstream version. A dropped piece stays in the downstream layer, marked local
 and visible. (Ubuntu's sync drops a carried change; Android forbids hiding a rejected patch.)
+
+`step.sh` gives each role its first opportunity to send: when the role writes an entry tagged as
+a candidate, `step.sh` has the same role's sending agent revise the entry into the layer's
+outbox. `upstream.sh`, run at the layer above, gives the receiving agents their opportunity.
 
 Each role's agent performs these acts by calling the APIs and running the programs each act needs.
 The coder builds those programs; the role that runs a program answers for the program's results.
@@ -260,7 +292,7 @@ the smallest form that still shows the example's point, plus the context a stran
 - the sending agent **drops** every piece whose removal leaves the verdict unchanged, largest
   first (delta debugging), and summarises long logs with a link to the original.
 
-On leg 3 the sending agent replaces what is specific to the generation and keeps the project's
+On leg 3 the sending agent replaces what is specific to the component and keeps the project's
 terms. On leg 4 the sending agent also replaces the project's terms, and writes the example in
 pattern form: context, problem, solution, consequences. The receiving agent's acceptance is the
 test of the revision: an example the receiving agent cannot judge without the downstream context
@@ -276,11 +308,14 @@ lacks context.
 
 ## 9. Order of work
 
-1. Leg 1, sync to N2S: built and run.
-2. Audit what leg 1 produced in N2S.
-3. Leg 4 in `shared`: the upstream spec, and each role's sending and receiving duties in the
-   role's spec, with the programs the roles call.
-4. Leg 2, then a step of S on f5, then legs 3 and 4.
+1. Leg 1, sync from `shared` to N2S: built and run.
+2. Leg 4, upstream from N2S to `shared`: built and run.
+3. Legs 2 and 3, sync from N2S to prototype2 and upstream back: built as prototype2's customised
+   `sync.sh` and N2S's `upstream.sh`, and tried in a sandbox.
+4. The chain in `shared`: the hand-offs, triggers and runs in `step.md`, `step.sh` and
+   `chain.json` for all seven roles, and leg 2 in `sync.md` and `sync.sh`.
+5. Legs 1 and 2 again, carrying the chain down to N2S and prototype2; then a step of S on
+   prototype2, and legs 3 and 4 from it.
 
 ## 10. Open decisions
 
@@ -293,3 +328,5 @@ lacks context.
 
 - Revised on 2026-10-12 with the surveys of upstreaming, data curation and example context, and
   later that day with the model of sending and receiving agents and the survey of curation roles.
+- Revised on 2026-10-13: components inside a project, S beside a component's generations, the
+  outboxes, runs inside a step, and triggering and chaining.
