@@ -107,8 +107,34 @@ send() {  # send <hand-off index> <entry file>: the role's sending agent revises
   else record "$(jq -r ".handoffs[$h].name" "$CHAIN")" "send failed" "$type/$(basename "$e")"; fi
 }
 
+# The developer is consulted at the end of each step listed in chain.json's "consult" (S's
+# steps, step.md); the step's last hand-off may be skipped, so the stop is on the step itself.
+CONSULT=" $(jq -r '(.consult // []) | map(tostring) | join(" ")' "$CHAIN") "
+step_of() { jq -r ".handoffs[$1].step | tostring" "$CHAIN"; }
+CUR=$( [ "$START" -lt "$N" ] && step_of "$START" || echo "")
+STEP_RAN="" STEP_NEW="" STEP_NAMES="" LOOPED=""
+step_end() {  # step_end <next hand-off name>: 0 when the step stops for the developer
+  [ -n "$CUR" ] && [ -n "$STEP_RAN" ] && [[ $CONSULT == *" $CUR "* ]] || return 1
+  local names redo
+  names=$(echo $STEP_NAMES | sed 's/ /, /g')
+  redo=$(jq -r --arg s "$CUR" '[.handoffs[] | select((.step | tostring) == $s and (.records | not) and ((.writes // []) | length > 0)) | .name][0] // ""' "$CHAIN")
+  jq -n --arg st "$CUR" --arg n "$names" --arg e "$STEP_NEW" --arg next "$1" --arg redo "$redo" \
+    '{step: $st, handoffs: $n, entries: ($e | split(" ") | map(select(. != ""))), next: $next, redo: $redo}' > "$LOG/gate"
+  record "step $CUR" "waits for the developer" "${STEP_NEW:-no new entries}"
+  echo "step: step $CUR ($names) is done and waits for the developer; its entries: ${STEP_NEW:-none}"
+  return 0
+}
+
 h=$START; round=1
 while [ "$h" -lt "$N" ]; do
+  s_now=$(step_of "$h")
+  if [ -z "$LOOPED" ] && [ "$s_now" != "$CUR" ]; then
+    if step_end "$(jq -r ".handoffs[$h].name" "$CHAIN")"; then return 0; fi
+    # Work of a step the developer is not consulted on is shown with the next step that is.
+    if [[ $CONSULT == *" $CUR "* ]]; then STEP_RAN="" STEP_NEW="" STEP_NAMES=""; fi
+    CUR=$s_now
+  fi
+  LOOPED=""
   name=$(jq -r ".handoffs[$h].name" "$CHAIN")
   role=$(jq -r ".handoffs[$h].role" "$CHAIN")
   start=$(jq -r ".handoffs[$h].start // \"auto\"" "$CHAIN")
@@ -155,9 +181,10 @@ while [ "$h" -lt "$N" ]; do
       echo "Write each entry you produce as one JSON file, $DATA_DIR/<type>/<entry id>.json, for the types: ${writes[*]}. Follow the format in $DATA_DIR/<type>/README.md and S/specs/data.md. Set \"by\" to \"$role\" with who plays it, and \"upstream\" to \"candidate\" when the entry could help an agent of any role in another component or project do its work better, or to \"local\" otherwise."
     fi
     [ -z "$RUN_KIND" ] || echo "The run command: $RUN_COMMAND. S_RUN_KIND=$RUN_KIND is set, so M.f logs as a $RUN_KIND run."
-    if [ -s "$LOG/gate-note" ]; then
-      echo "The person rejected what you wrote at this hand-off before, and said: $(cat "$LOG/gate-note"). Write it again with that in mind."
-      rm -f "$LOG/gate-note"
+    if [ -s "$LOG/note" ]; then
+      echo "The developer said, at this point of the step, in their own words: $(cat "$LOG/note")"
+      echo "Take this into your work."
+      rm -f "$LOG/note"
     fi
     echo "End your reply with the action's JSON, as your instructions give it. In it, list in \"used\" the ids of the entries in $DATA_DIR/ you relied on."
   } > "$TMP/message"
@@ -174,32 +201,20 @@ while [ "$h" -lt "$N" ]; do
   used=$(jq -r '(.used // []) | map(tostring) | join(" ")' <<< "$json" 2>/dev/null || true)
   [ -z "$used" ] || record "$name" "used" "$used"
 
-  # The gate. "person": the step waits for the person's decision on what the role wrote.
-  # "notify": the step goes on, and tells the person what the role wrote. "auto": it goes on.
-  if [ "$start" = person ] || [ "$start" = notify ]; then
-    jq -n --arg h "$name" --arg r "$role" --arg e "$new" '{handoff: $h, role: $r, entries: ($e | split(" ") | map(select(. != "")))}' > "$LOG/gate"
-    if [ "$start" = person ]; then
-      record "$name" "waits for the person" "the $role's entries: ${new:-none}"
-      echo "step: the $role wrote ${new:-no entries}; its reply is $reply."
-      echo "  S/src/gate.sh $P approve [reason]     pass them on"
-      echo "  S/src/gate.sh $P edit [reason]        correct them in \$EDITOR, then pass them on"
-      echo "  S/src/gate.sh $P reject <reason>      send them back to the $role"
-      echo "  S/src/gate.sh $P takeover [reason]    set them aside and write the $role's entries yourself"
-      return 0
-    fi
-    record "$name" "told the person" "the $role's entries: ${new:-none}"
-  fi
+  STEP_RAN=1; STEP_NEW=$(echo $STEP_NEW $new)
+  [[ " $STEP_NAMES " == *" $name "* ]] || STEP_NAMES=$(echo $STEP_NAMES $name)
 
   # The propose-review loop: back to "loop" while the reviewer says again and rounds remain.
   back=$(jq -r ".handoffs[$h].loop // \"\"" "$CHAIN")
   if [ -n "$back" ]; then
     if [ "$(jq -r '.loop // ""' <<< "$json")" = again ] && [ "$round" -lt "$ROUNDS" ]; then
-      round=$((round + 1)); h=$(jq --arg n "$back" '[.handoffs[].name] | index($n)' "$CHAIN"); continue
+      round=$((round + 1)); h=$(jq --arg n "$back" '[.handoffs[].name] | index($n)' "$CHAIN"); LOOPED=1; continue
     fi
     round=1
   fi
   h=$((h + 1))
 done
+if step_end end; then return 0; fi
 record "end" "step complete" ""
 
 # The submit pass. Each role that wrote entries in this step looks at them again with the whole

@@ -168,31 +168,39 @@ gained an entry earlier in the same step: the planner proposes only from new fin
 coder codes only after new decisions. A step that finds nothing new ends after monitor, at the
 cost of the runs and monitor alone.
 
-Each hand-off has a gate, set in `chain.json` as `start`. The three settings follow the levels
-of automation (Sheridan and Verplank; Parasuraman, Sheridan and Wickens 2000), and the approval
-gate of human-in-the-loop agent frameworks (LangGraph's interrupt and resume, Temporal's approval
-pattern):
-- **`person`**: the role acts, and the step waits for the person's decision on what it wrote;
-- **`notify`**: the role acts, the step goes on, and the step tells the person what it wrote;
-- **`auto`**: the role acts, and the step goes on.
+## Developer mode
 
-A layer starts with every hand-off at `person`, its developer mode, and the person moves a
-hand-off to `notify` or `auto` once its work no longer needs checking. At a `person` gate the
-person runs `S/src/gate.sh <layer root>` with one decision:
-- **approve**: the role's entries pass on as they are;
-- **edit**: the person corrects each entry in an editor, and the entries pass on;
-- **reject**, with a reason: the role writes its entries again, with the reason in hand;
-- **takeover**: the role's entries are set aside, and the person writes the role's entries.
+The person who develops the project is S's developer, and works with S step by step, the way the
+Director works with f round by round. At the end of each of S's steps that the developer is
+consulted on, S shows the step's work in the developer's terms: the findings with their evidence;
+the proposals in order, with their gains, costs and checks and the reviewer's corrections; the
+decisions with their reasons; each change with its tests and trial runs; the code review; the
+release. The developer answers in words. The answer goes into the step: agreement passes the
+step's entries on, and any direction in it goes to the next role; a correction has the step done
+again with the developer's words in hand; the developer's own content, such as a finding or a
+decision, becomes an entry, by the developer. The developer's words are kept verbatim, in the
+entries (`status`, `decided`, `reason`, and `earlier` for an edited entry, `data.md`) and in the
+step's log, so they travel upward like any other entry.
 
-The decision is kept in the entries themselves (`data.md`), so the person's words travel upward
-like any other entry. Each role also names, in its reply, the entries it relied on, and the step's
-log keeps them.
+The developer is consulted at the end of each step listed in `chain.json`'s `consult`: by default
+steps 1, 3 (propose and review, shown together), 4, 5, 6 and 7. The hand-offs that only record,
+the seed as a use case and the Director's runs, need no consultation. When a step no longer needs
+the developer, the developer takes it out of `consult`, and its work is shown with the next
+consulted step. (Interrupt and resume in human-in-the-loop agent frameworks, such as LangGraph;
+levels of automation, Sheridan and Verplank, and Parasuraman, Sheridan and Wickens 2000.)
+
+A Claude Code session runs S with the developer (the skill `run-s`). It plays the steps with
+`step.sh`, shows each consulted step's work, and records the developer's answer with
+`S/src/gate.sh <layer root> approve | edit | reject | takeover "<the developer's words>"`. A hook
+puts where the step stands beside each of the developer's messages, so the session works from the
+step's state, not from the chat. Each role also names, in its reply, the entries it relied on, and
+the step's log keeps them.
 
 `S/src/chain.json` holds the layer's chain: each hand-off, its role, what the role writes, how
 the hand-off starts, how many rounds the propose-review loop may take, the layer's run command,
 and the leg to the layer above. `S/src/step.sh <layer root>` plays the chain. It gives each role
 its prompt, its settings and the step so far, records each hand-off in the step's log
-`S/steps/<step id>/`, and stops where a hand-off waits for a person. `step.sh <layer root>
+`S/steps/<step id>/`, and stops at the end of each consulted step. `step.sh <layer root>
 --from <hand-off>` resumes there. When a role writes an entry tagged `"upstream": "candidate"`,
 `step.sh` has the same role's sending agent revise the entry into `S/outbox/<type>/`
 (`upstream.md`).
