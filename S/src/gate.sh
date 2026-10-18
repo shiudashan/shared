@@ -36,7 +36,7 @@ log() {
   jq -nc --arg h "step $STEP" --arg e "developer: $1" --arg d "$WORDS" --arg t "$(date +%FT%T)" '{at: $t, handoff: $h, event: $e, detail: $d}' >> "$LOG/log.jsonl"
   echo "  step $STEP: developer: $1${WORDS:+ ($WORDS)}"
 }
-entries() { jq -r '.entries[]' "$LOG/gate"; }
+entries() { jq -r '(.judged // .entries)[]' "$LOG/gate"; }   # the entries the developer judges
 
 case "$WHAT" in
   approve)

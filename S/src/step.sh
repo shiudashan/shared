@@ -112,14 +112,14 @@ send() {  # send <hand-off index> <entry file>: the role's sending agent revises
 CONSULT=" $(jq -r '(.consult // []) | map(tostring) | join(" ")' "$CHAIN") "
 step_of() { jq -r ".handoffs[$1].step | tostring" "$CHAIN"; }
 CUR=$( [ "$START" -lt "$N" ] && step_of "$START" || echo "")
-STEP_RAN="" STEP_NEW="" STEP_NAMES="" LOOPED=""
+STEP_RAN="" STEP_NEW="" STEP_JUDGED="" STEP_NAMES="" LOOPED=""
 step_end() {  # step_end <next hand-off name>: 0 when the step stops for the developer
   [ -n "$CUR" ] && [ -n "$STEP_RAN" ] && [[ $CONSULT == *" $CUR "* ]] || return 1
   local names redo
   names=$(echo $STEP_NAMES | sed 's/ /, /g')
   redo=$(jq -r --arg s "$CUR" '[.handoffs[] | select((.step | tostring) == $s and (.records | not) and ((.writes // []) | length > 0)) | .name][0] // ""' "$CHAIN")
   jq -n --arg st "$CUR" --arg n "$names" --arg e "$STEP_NEW" --arg next "$1" --arg redo "$redo" \
-    '{step: $st, handoffs: $n, entries: ($e | split(" ") | map(select(. != ""))), next: $next, redo: $redo}' > "$LOG/gate"
+    --arg j "$STEP_JUDGED" '{step: $st, handoffs: $n, entries: ($e | split(" ") | map(select(. != ""))), judged: ($j | split(" ") | map(select(. != ""))), next: $next, redo: $redo}' > "$LOG/gate"
   record "step $CUR" "waits for the developer" "${STEP_NEW:-no new entries}"
   echo "step: step $CUR ($names) is done and waits for the developer; its entries: ${STEP_NEW:-none}"
   return 0
@@ -131,7 +131,7 @@ while [ "$h" -lt "$N" ]; do
   if [ -z "$LOOPED" ] && [ "$s_now" != "$CUR" ]; then
     if step_end "$(jq -r ".handoffs[$h].name" "$CHAIN")"; then return 0; fi
     # Work of a step the developer is not consulted on is shown with the next step that is.
-    if [[ $CONSULT == *" $CUR "* ]]; then STEP_RAN="" STEP_NEW="" STEP_NAMES=""; fi
+    if [[ $CONSULT == *" $CUR "* ]]; then STEP_RAN="" STEP_NEW="" STEP_JUDGED="" STEP_NAMES=""; fi
     CUR=$s_now
   fi
   LOOPED=""
@@ -202,6 +202,8 @@ while [ "$h" -lt "$N" ]; do
   [ -z "$used" ] || record "$name" "used" "$used"
 
   STEP_RAN=1; STEP_NEW=$(echo $STEP_NEW $new)
+  # What the developer judges: entries of the hand-offs that do work, not of those that only record.
+  [ "$(jq -r ".handoffs[$h].records // false" "$CHAIN")" = true ] || STEP_JUDGED=$(echo $STEP_JUDGED $new)
   [[ " $STEP_NAMES " == *" $name "* ]] || STEP_NAMES=$(echo $STEP_NAMES $name)
 
   # The propose-review loop: back to "loop" while the reviewer says again and rounds remain.
