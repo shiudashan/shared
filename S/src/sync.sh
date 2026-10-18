@@ -44,6 +44,7 @@ MAP=(
   "S/src/sync.sh|S/src/sync.sh"
   "S/src/upstream.sh|S/src/upstream.sh"
   "S/src/step.sh|S/src/step.sh"
+  "S/src/gate.sh|S/src/gate.sh"
   "S/src/chain.json|S/src/chain.json"
   "S/specs/|S/specs/"
   "S/src/agents/|$AGENTS_DIR/"
@@ -57,6 +58,7 @@ MAP=(
   "S/src/sync.sh|S/src/sync.sh"
   "S/src/upstream.sh|S/src/upstream.sh"
   "S/src/step.sh|S/src/step.sh"
+  "S/src/gate.sh|S/src/gate.sh"
   "S/src/chain.json|S/src/chain.json"
   "survey/|S/survey/"
   "S/specs/|S/specs/"
@@ -177,7 +179,7 @@ for m in "${MAP[@]}"; do
   [ "$d" = "S/src/sync.sh" ] && continue        # handled in step 1
   sync_entry "$s" "$d"
 done
-chmod +x "$P/.claude/hooks/"*.py "$P/S/src/upstream.sh" "$P/S/src/step.sh" 2>/dev/null || true
+chmod +x "$P/.claude/hooks/"*.py "$P/S/src/upstream.sh" "$P/S/src/step.sh" "$P/S/src/gate.sh" 2>/dev/null || true
 if [ $LAYER = component ]; then
   for t in "${OUTBOX_TYPES[@]}"; do
     [ -e "$P/S/outbox/$t/.gitkeep" ] || { mkdir -p "$P/S/outbox/$t"; : > "$P/S/outbox/$t/.gitkeep"; ADDED+=("S/outbox/$t/"); }

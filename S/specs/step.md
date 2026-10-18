@@ -168,10 +168,25 @@ gained an entry earlier in the same step: the planner proposes only from new fin
 coder codes only after new decisions. A step that finds nothing new ends after monitor, at the
 cost of the runs and monitor alone.
 
-Each hand-off starts in one of two ways:
-- **automatically**, when the previous role's entries arrive;
-- **by a person**, who reads the entries, and starts the next role by hand. A person can also
-  play the role, writing the entries in the role's place.
+Each hand-off has a gate, set in `chain.json` as `start`. The three settings follow the levels
+of automation (Sheridan and Verplank; Parasuraman, Sheridan and Wickens 2000), and the approval
+gate of human-in-the-loop agent frameworks (LangGraph's interrupt and resume, Temporal's approval
+pattern):
+- **`person`**: the role acts, and the step waits for the person's decision on what it wrote;
+- **`notify`**: the role acts, the step goes on, and the step tells the person what it wrote;
+- **`auto`**: the role acts, and the step goes on.
+
+A layer starts with every hand-off at `person`, its developer mode, and the person moves a
+hand-off to `notify` or `auto` once its work no longer needs checking. At a `person` gate the
+person runs `S/src/gate.sh <layer root>` with one decision:
+- **approve**: the role's entries pass on as they are;
+- **edit**: the person corrects each entry in an editor, and the entries pass on;
+- **reject**, with a reason: the role writes its entries again, with the reason in hand;
+- **takeover**: the role's entries are set aside, and the person writes the role's entries.
+
+The decision is kept in the entries themselves (`data.md`), so the person's words travel upward
+like any other entry. Each role also names, in its reply, the entries it relied on, and the step's
+log keeps them.
 
 `S/src/chain.json` holds the layer's chain: each hand-off, its role, what the role writes, how
 the hand-off starts, how many rounds the propose-review loop may take, the layer's run command,

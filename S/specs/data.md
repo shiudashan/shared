@@ -14,6 +14,8 @@ gives its format. Each entry is one JSON file, named by its `id`.
   in another component or project do its work better; or `accepted`, once the layer above
   accepted it. The role that writes the entry sets it at birth, and again at the step's submit
   pass (`upstream.md`).
+- `reason` (optional): the person's words when the person decided the entry at a gate (`step.md`).
+- `earlier` (optional): an entry's text before the person edited it at a gate.
 - `related` (optional, on a sent entry): the ids of the entries it rests on or answers, such as
   the proposal a decision decides.
 - `superseded_by` (on a retired entry): the id of the entry that replaced it. `retired` is a
