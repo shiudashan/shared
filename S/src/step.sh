@@ -68,6 +68,15 @@ record() {  # record <hand-off> <event> <detail>: one line of the step's log
     '{at: $t, handoff: $h, event: $e, detail: $d}' >> "$LOG/log.jsonl"
   echo "  $1: $2${3:+ ($3)}"
 }
+fresh() {  # fresh <type>: entries of <type> written since the last completed step began; on a
+  # layer's first step, every entry that is not a made-up sample
+  local t=$1 prev="" d
+  for d in $(ls -1 "$P/$STEPS_DIR" 2>/dev/null | grep -vx "$ID"); do
+    grep -q '"step complete"' "$P/$STEPS_DIR/$d/log.jsonl" 2>/dev/null && prev=$d
+  done
+  if [ -n "$prev" ]; then find "$P/$DATA_DIR/$t" -name '*.json' -newer "$P/$STEPS_DIR/$prev/branch" 2>/dev/null
+  else for f in "$P/$DATA_DIR/$t"/*.json; do [ -e "$f" ] && [ "$(jq -r '.made_up // false' "$f" 2>/dev/null)" != true ] && echo "$f"; done; fi
+}
 section() {  # section <prompt.md> <send words>: the role's instructions, or its "## Send" section
   if [ -z "$2" ]; then awk '/^## Send/ {exit} {print}' "$1"
   else awk -v w="$2" '/^## / { on = ($0 ~ /^## Send/ && index($0, w) > 0) } on' "$1"; fi
@@ -106,11 +115,15 @@ while [ "$h" -lt "$N" ]; do
   run=$(jq -r ".handoffs[$h].run // \"\"" "$CHAIN")
   writes=(); while IFS= read -r w; do writes+=("$w"); done < <(jq -r ".handoffs[$h].writes[]" "$CHAIN")
 
-  # A hand-off whose needed types gained no entry earlier in this step has nothing to work on.
+  # A hand-off whose needed types gained no entry since the last completed step has nothing to
+  # work on: none in this step, and none written between steps, such as the person's own.
   needs=$(jq -r ".handoffs[$h].needs // [] | join(\" \")" "$CHAIN")
   if [ -n "$needs" ]; then
-    got=""; for t in $needs; do grep -q "\"detail\":\"[^\"]*S/data/$t/" "$LOG/log.jsonl" 2>/dev/null && got=1; done
-    if [ -z "$got" ]; then record "$name" "skipped" "no new $needs in this step"; h=$((h + 1)); continue; fi
+    got=""; for t in $needs; do
+      grep -q "\"detail\":\"[^\"]*S/data/$t/" "$LOG/log.jsonl" 2>/dev/null && got=1
+      [ -n "$got" ] || [ -z "$(fresh "$t")" ] || got=1
+    done
+    if [ -z "$got" ]; then record "$name" "skipped" "no new $needs since the last step"; h=$((h + 1)); continue; fi
   fi
 
   FROM=""
