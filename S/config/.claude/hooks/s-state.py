@@ -26,7 +26,9 @@ step_dir = os.path.dirname(log)
 layer_root = os.path.dirname(os.path.dirname(os.path.dirname(step_dir)))  # <layer>/S/steps/<id>
 layer = os.path.basename(layer_root)
 lines = [json.loads(l) for l in open(log, encoding="utf-8") if l.strip()]
-if not lines or any(l.get("event") == "step complete" for l in lines):
+# A step that completed and was not resumed afterwards is not in progress.
+done = [i for i, l in enumerate(lines) if l.get("event") == "step complete"]
+if not lines or (done and done[-1] == len(lines) - 1):
     sys.exit(0)
 
 def gist(path):

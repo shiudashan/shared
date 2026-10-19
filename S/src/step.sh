@@ -194,7 +194,8 @@ while [ "$h" -lt "$N" ]; do
   record "$name" "starts" "the $role${RUN_KIND:+, $RUN_KIND runs}"
   reply="$LOG/$(printf '%02d' "$h")-$name-$round.reply"
   if ! ask "$h" "$TMP/message" "$reply"; then record "$name" "failed" "claude -p failed; resume with --from $name"; return 1; fi
-  json=$(perl -0777 -ne 'print $1 if /(\{.*\})\s*$/s' "$reply" | jq -c . 2>/dev/null || true)
+  # The reply ends with its JSON, bare or in a code fence.
+  json=$(perl -0777 -ne 'print $1 if /(\{.*\})\s*(?:```)?\s*$/s' "$reply" | jq -c . 2>/dev/null || true)
   [ -n "$json" ] || json='{}'
 
   entries ${writes[@]+"${writes[@]}"} > "$TMP/after"
