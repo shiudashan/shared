@@ -211,7 +211,11 @@ while [ "$h" -lt "$N" ]; do
   # The propose-review loop: back to "loop" while the reviewer says again and rounds remain.
   back=$(jq -r ".handoffs[$h].loop // \"\"" "$CHAIN")
   if [ -n "$back" ]; then
-    if [ "$(jq -r '.loop // ""' <<< "$json")" = again ] && [ "$round" -lt "$ROUNDS" ]; then
+    max=$(jq -r ".handoffs[$h].rounds // $ROUNDS" "$CHAIN")
+    if [ "$(jq -r '.loop // ""' <<< "$json")" = again ] && [ "$round" -lt "$max" ]; then
+      # Findings picked up go to the role the loop returns to, as the step's note.
+      picked=$(jq -r '(.picked // []) | map(tostring) | join(", ")' <<< "$json")
+      [ -z "$picked" ] || printf '%s\n' "The decision maker picked up these open findings, and these alone: $picked." >> "$LOG/note"
       round=$((round + 1)); h=$(jq --arg n "$back" '[.handoffs[].name] | index($n)' "$CHAIN"); LOOPED=1; continue
     fi
     round=1

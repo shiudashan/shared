@@ -111,17 +111,29 @@ whatever runs exist, and with none.
    the code or sends the code back to the coder with the review. Either way the code reviewer
    writes the review down, and the run reviewer reads it at step 1. (Google code review;
    GitHub's required review, approve or request changes.)
-7. **Release and deploy, to developers.** The decision maker releases v+1 or keeps v, with the
-   code review in hand, and with the graded runs of the side-by-side comparison when there are
-   any. The coder then merges each released change into the branch the step started on, from
-   the merge queue; a kept change stays on its branch. A release that proves worse is reverted.
-   Any runs go on to step 1. (Software
-   Engineering at Google; LLVM; feature toggles; DORA on change approval.)
+7. **Release.**
+   1. **The decision maker chooses** between the version in use now and the new version with
+      this step's changes, with the code review and the trial runs in hand.
+      - When the decision maker chooses the new version, the coder adds this step's changes to
+        the branch the step started from.
+      - When the decision maker keeps the version in use, the coder leaves this step's changes
+        on their own branches and adds nothing.
+      - When a released version later proves worse than the one before it, the decision maker
+        takes the release back, and the coder removes its changes.
+   2. **Then the decision maker decides whether to pick up any remaining open finding.**
+      - When the decision maker picks up one or more findings, the step returns to step 2,
+        propose, with those findings alone, building on the version chosen in 1. When that work
+        reaches step 7 again, the decision maker decides again.
+      - When the decision maker picks up none, that one decision accepts every remaining open
+        finding as a known defect, and the version chosen in 1 is released to developers, with
+        those defects.
 
-A release goes to developers. A released M.f is expected to be fit for developers' runs.
+   (Software Engineering at Google; LLVM; feature toggles; DORA on change approval.)
 
-Runs after a release, by real users, developers, the user role or automation, on use cases
-inside or outside M's dataset, may happen at any time. Their records go to step 1.
+About releases:
+- A release goes to developers, and a released version is one that developers can run.
+- Developers, users, the user role or automated tests may run a released version at any time.
+  The run reviewer reads the records of those runs at the start of the next step of S.
 
 ## Runs inside a step
 
@@ -130,14 +142,11 @@ states that no use case covers yet, and runs the current version on each use cas
 run record of it. So a step that starts with no data, as the first step on a project developed
 by other means does, still gives the run reviewer runs to read.
 
-Inside the step, a step may include runs at two more points, and may include none.
-
-- **Before release, trial runs.** After the coder's step 5, a simulated developer (the user role)
-  or the person makes one or more trial runs of the candidate v+1, side by side with v when both
-  can run. A trial run logs more than a true run: the run sets `S_RUN_KIND=trial`, and M.f
-  raises its logging when it sees it.
-- **After release, trial runs or true runs.** After step 7, simulated users (the user role) or
-  real users run v+1. The user role grades the runs it makes.
+Inside the step, a step may include trial runs, and may include none. After the coder's step 5, a
+simulated developer (the user role) or the person makes one or more trial runs of the candidate
+v+1, side by side with v when both can run. A trial run logs more than a true run: the run sets
+`S_RUN_KIND=trial`, and M.f raises its logging when it sees it. Runs of a released version belong
+to the next step, which starts by running the version in use.
 
 Each run leaves a run record in `S/data/run-records/`, and the run reviewer reads it at the next
 step 1. A layer that has no way to run M.f yet leaves its run command empty, and its steps include
@@ -160,8 +169,8 @@ entries into the layer's `S/data/<type>/`, and the next role takes them from the
 | trial runs | user | run records, run grades | code reviewer |
 | 6. code review | code reviewer | code reviews | decision maker |
 | 7. release | decision maker | a release decision | coder |
-| merge | coder | the merge, in the step's log | the user, for runs after release, or the next step's run reviewer |
-| runs after release | user | run records, run grades | the next step's run reviewer |
+| merge | coder | the merge, in the step's log | decision maker |
+| pick up | decision maker | the findings picked up, or none | the planner, with those findings, or the step's end |
 
 A hand-off may name the types it needs. `step.sh` skips the hand-off when none of those types
 gained an entry earlier in the same step: the planner proposes only from new findings, and the
