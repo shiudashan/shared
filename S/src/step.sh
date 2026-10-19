@@ -117,7 +117,8 @@ step_end() {  # step_end <next hand-off name>: 0 when the step stops for the dev
   [ -n "$CUR" ] && [ -n "$STEP_RAN" ] && [[ $CONSULT == *" $CUR "* ]] || return 1
   local names redo
   names=$(echo $STEP_NAMES | sed 's/ /, /g')
-  redo=$(jq -r --arg s "$CUR" '[.handoffs[] | select((.step | tostring) == $s and (.records | not) and ((.writes // []) | length > 0)) | .name][0] // ""' "$CHAIN")
+  # A correction goes back to the first hand-off that does work among those the developer was shown.
+  redo=$(jq -r --arg n "$STEP_NAMES" '($n | split(" ")) as $ran | [.handoffs[] | select(.name as $x | $ran | index($x)) | select((.records | not) and ((.writes // []) | length > 0)) | .name][0] // ""' "$CHAIN")
   jq -n --arg st "$CUR" --arg n "$names" --arg e "$STEP_NEW" --arg next "$1" --arg redo "$redo" \
     --arg j "$STEP_JUDGED" '{step: $st, handoffs: $n, entries: ($e | split(" ") | map(select(. != ""))), judged: ($j | split(" ") | map(select(. != ""))), next: $next, redo: $redo}' > "$LOG/gate"
   record "step $CUR" "waits for the developer" "${STEP_NEW:-no new entries}"
