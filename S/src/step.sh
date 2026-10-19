@@ -186,7 +186,7 @@ while [ "$h" -lt "$N" ]; do
     if [ -s "$LOG/note" ]; then
       echo "The developer said, at this point of the step, in their own words: $(cat "$LOG/note")"
       echo "Take this into your work."
-      rm -f "$LOG/note"
+      mv "$LOG/note" "$LOG/note-read"
     fi
     echo "End your reply with the action's JSON, as your instructions give it. In it, list in \"used\" the ids of the entries in $DATA_DIR/ you relied on."
   } > "$TMP/message"
@@ -215,7 +215,10 @@ while [ "$h" -lt "$N" ]; do
     if [ "$(jq -r '.loop // ""' <<< "$json")" = again ] && [ "$round" -lt "$max" ]; then
       # Findings picked up go to the role the loop returns to, as the step's note.
       picked=$(jq -r '(.picked // []) | map(tostring) | join(", ")' <<< "$json")
-      [ -z "$picked" ] || printf '%s\n' "The decision maker picked up these open findings, and these alone: $picked." >> "$LOG/note"
+      if [ -n "$picked" ]; then
+        printf '%s\n' "The decision maker picked up these open findings, and these alone: $picked." >> "$LOG/note"
+        [ ! -s "$LOG/note-read" ] || { printf '%s\n' "The developer's words with that choice:"; cat "$LOG/note-read"; } >> "$LOG/note"
+      fi
       round=$((round + 1)); h=$(jq --arg n "$back" '[.handoffs[].name] | index($n)' "$CHAIN"); LOOPED=1; continue
     fi
     round=1
