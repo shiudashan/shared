@@ -81,8 +81,9 @@ section() {  # section <prompt.md> <send words>: the role's instructions, or its
   if [ -z "$2" ]; then awk '/^## Send/ {exit} {print}' "$1"
   else awk -v w="$2" '/^## / { on = ($0 ~ /^## Send/ && index($0, w) > 0) } on' "$1"; fi
 }
-entries() {  # entries <types...>: every entry file of those types, one path per line
-  local t; for t in "$@"; do ls -1 "$P/$DATA_DIR/$t"/*.json 2>/dev/null || true; done | sort
+entries() {  # entries <types...>: every entry file of those types, with its checksum, one per line,
+  # so an entry a role revises in place counts as written, like a new one
+  local t f; for t in "$@"; do for f in "$P/$DATA_DIR/$t"/*.json; do if [ -e "$f" ]; then echo "$f $(cksum < "$f" | tr ' ' '-')"; fi; done; done | sort
 }
 ask() {  # ask <hand-off index> <message file> <reply file>
   local h=$1 role model flags
@@ -197,7 +198,7 @@ while [ "$h" -lt "$N" ]; do
   [ -n "$json" ] || json='{}'
 
   entries ${writes[@]+"${writes[@]}"} > "$TMP/after"
-  new=$(comm -13 "$TMP/before" "$TMP/after" | sed "s|^$P/||" | paste -sd ' ' -)
+  new=$(comm -13 "$TMP/before" "$TMP/after" | cut -d' ' -f1 | sed "s|^$P/||" | sort -u | paste -sd ' ' -)
   record "$name" "done" "${new:-no new entries}"
   used=$(jq -r '(.used // []) | map(tostring) | join(" ")' <<< "$json" 2>/dev/null || true)
   [ -z "$used" ] || record "$name" "used" "$used"
