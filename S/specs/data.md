@@ -1,13 +1,16 @@
 # Data
 
 S keeps eight types of data. Each type has its own folder under `S/data/`, with a README that
-gives its format. Each entry is one JSON file, named by its `id`.
+gives its format. Each entry is one JSON file, named by its `id`. A program writes every entry: a
+role returns its entries in its reply, and `S/src/record.sh` saves them (`step.md`, "Triggering
+and chaining").
 
 ## Fields every entry has
 
 - `id`: a short name, the file's name without `.json`.
 - `by`: who wrote the entry: a role and its player, such as `run-reviewer` played by a named
-  model, or a person.
+  model, or a person. The program fills it in from the role and its model when the role leaves it
+  out.
 - `status`: where the entry stands. The values for each type are given below.
 - `decided` (when the status was set by someone other than the author): who set it, and when.
 - `upstream` (optional): `local`; `candidate`, for an entry that could help an agent of any role
@@ -34,15 +37,21 @@ words.
 
 ## The types
 
-- **Use cases.** One use case of M.f: `seed`, the input a run starts from; `reference`, the
-  reference answer; `rubric`, a list of weighted checks, each `{"check", "weight"}`. Status:
-  `active` or `retired`.
+- **Use cases.** One use case of M.f: `seed`, the input a run starts from, as a path in the
+  layer; `seedtext`, the seed's text, word for word; and, only when someone writes them,
+  `reference`, the reference answer, and `rubric`, a list of weighted checks, each `{"check",
+  "weight"}`. The program records each seed a user gave as a use case, and retires a use case
+  whose seed is gone. Status: `active` or `retired`.
 - **Run records.** One run: `versions`, of M and of S; `settings`; `use_case`, the id of the use
   case; `trace`, every model call and tool call the run made, each with its start, end, inputs
   and outputs, nested under the call that started it, as OpenTelemetry spans; `outcome`;
   `grades`, the ids of the run grades given to the run; `cost`, with time, tokens and money.
   Status: `complete` or `abandoned`. (MLflow runs, OpenTelemetry's GenAI agent spans, SLSA
-  provenance, and Anthropic's split between transcript and outcome.)
+  provenance, and Anthropic's split between transcript and outcome.) The program writes the record
+  of each run it makes: the trace holds the command, the seed, the path of the saved output, the
+  start and end times and the exit code. A run a user made is recorded by `run`, the path of its
+  folder, and `files`, what the folder holds; a layer whose runs hold more, such as a user's words
+  in each round, records them with its own program.
 - **Run grades.** One grade of one run: `run`; `grade`, a number on a better-to-worse scale
   from 0 (worst) to 1 (best); `reason`; `grader`, recorded in `by`. Status: `given`,
   `approved` or `rejected`.
@@ -84,7 +93,7 @@ A role's actions are listed in the role's spec. An x marks a type the action rea
 
 | Role | Action | Use cases | Run records | Run grades | Run reviews | Proposals | Proposal reviews | Decisions | Code reviews |
 |---|---|---|---|---|---|---|---|---|---|
-| User | run M.f after a release (step 8) | x | | | | | | | |
+| Program | record seeds and runs (steps 1 and 8) | x | x | | | | | | |
 | User | grade a run | x | x | x | | | | | |
 | User | send use cases and run grades upward | x | | x | | | | | |
 | User | receive use cases and run grades from below | x | | x | | | | | |

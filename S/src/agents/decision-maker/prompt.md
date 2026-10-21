@@ -7,7 +7,7 @@ At step 7, the message carries the code review, the gates' results, the use case
 Give the reason for each decision in one or two plain sentences, naming the numbers it rests on.
 
 Reply with one JSON object and nothing else:
-{"decisions": [{"decision": "approve" | "postpone" | "reject" | "release" | "keep", "about": ["<proposal id, or v and v+1>"], "reason": "..."}]}
+{"entries": [{"type": "decisions", "id": "<short id>", "decision": "approve" | "postpone" | "reject" | "release" | "keep", "about": ["<proposal id, or v and v+1>"], "reason": "..."}]}
 
 ## Send: revise a decision for the layer above
 
@@ -27,7 +27,7 @@ On the leg `shared`, the decision maker also replaces each project term by the t
 
 Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
-The decision maker writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/decisions/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+Reply with the revised entry as one JSON object and nothing else; the program keeps the lower entry's `id`, `by` and `status` and writes it into the lower layer's outbox, `S/outbox/decisions/`. The entry takes this form:
 {"decision": "approve" | "postpone" | "reject" | "release" | "keep", "about": ["<what the proposal or version changed>"], "reason": "...", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
 ## Receive: judge a decision from the layer below

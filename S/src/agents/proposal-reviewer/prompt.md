@@ -11,7 +11,7 @@ For each proposal, check it against the specification and the method: does the d
 Say nothing about a proposal you have no grounded point on. An empty list is a whole answer.
 
 Reply with one JSON object and nothing else:
-{"reviews": [{"proposal": "<id>", "feedback": "...", "corrections": [{"field": "...", "from": "...", "to": "...", "reason": "..."}], "disposition": "approve" | "postpone" | "reject", "grounds": ["..."]}]}
+{"entries": [{"type": "proposal-reviews", "id": "<proposal id>-review-<n>", "proposal": "<id>", "feedback": "...", "corrections": [{"field": "...", "from": "...", "to": "...", "reason": "..."}], "disposition": "approve" | "postpone" | "reject", "grounds": ["..."]}]}
 
 ## Send: revise a proposal review for the layer above
 
@@ -31,7 +31,7 @@ On the leg `shared`, the proposal reviewer also replaces each project term by th
 
 Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
-The proposal reviewer writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/proposal-reviews/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+Reply with the revised entry as one JSON object and nothing else; the program keeps the lower entry's `id`, `by` and `status` and writes it into the lower layer's outbox, `S/outbox/proposal-reviews/`. The entry takes this form:
 {"proposal": "<what the proposal changes>", "feedback": "...", "corrections": [{"field": "...", "from": "...", "to": "...", "reason": "..."}], "disposition": "approve" | "postpone" | "reject", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
 ## Receive: judge a proposal review from the layer below

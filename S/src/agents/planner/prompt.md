@@ -23,7 +23,7 @@ Each proposal has these parts, a few plain sentences each:
 Quantify each proposal's upsides and downsides, keep the quantities side by side, and order the proposals by weighing them together; do not reduce them to a ratio. Do not write a proposal too slight to matter. Name only files listed in the message.
 
 Reply with one JSON object and nothing else:
-{"proposals": [{"findings": ["<finding>"], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "gates": [{"name": "...", "command": "...", "dir": "..."}], "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "changed": "<what changed since the last round, or empty>"}]}
+{"entries": [{"type": "proposals", "id": "<short id>", "findings": ["<finding>"], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "gates": [{"name": "...", "command": "...", "dir": "..."}], "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "changed": "<what changed since the last round, or empty>"}]}
 
 ## Send: revise a proposal for the layer above
 
@@ -43,7 +43,7 @@ On the leg `shared`, the planner also replaces each project term by the term's m
 
 Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
-The planner writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/proposals/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+Reply with the revised entry as one JSON object and nothing else; the program keeps the lower entry's `id`, `by` and `status` and writes it into the lower layer's outbox, `S/outbox/proposals/`. The entry takes this form:
 {"findings": ["..."], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
 ## Receive: judge a proposal from the layer below

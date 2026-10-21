@@ -154,12 +154,12 @@ whatever runs exist, and with none.
         those defects.
 
    (Software Engineering at Google; LLVM; feature toggles; DORA on change approval.)
-8. **Use case.** After the release, the user runs the version in use on a new use case, one
-   different from the earlier ones. Open findings do not hold this back. Steps of S alternate in
-   this way between the design and new use cases: a new use case shows parts the design must add,
-   parts it can remove, and existing parts it can use again. The new case is a seed a user gave
-   that no run has used yet. When there is none, the step stops and asks for one. The
-   run records go to the next step 1.
+8. **Use case.** After the release, a program runs the version in use on a new use case, one
+   different from the earlier ones, and the user grades the run. Open findings do not hold this
+   back. Steps of S alternate in this way between the design and new use cases: a new use case shows
+   parts the design must add, parts it can remove, and existing parts it can use again. The new case
+   is a seed a user gave that no run has used yet. When there is none, the step stops and asks for
+   one. The run records go to the next step 1.
 
 About releases:
 - A release goes to users, and a released version is one that users can run.
@@ -168,10 +168,12 @@ About releases:
 
 ## Runs inside a step
 
-A step starts with the use cases it can run. The user writes a use case for each behaviour M.p
-states that no use case covers yet, and runs the current version on each use case that has no
-run record of it. So a step that starts with no data, as the first step on a project developed
-by other means does, still gives the run reviewer runs to read.
+A step starts with the use cases it can run. A program records each seed a user gave as a use
+case, word for word, and runs the current version on each use case that has no run record of it;
+the user grades the runs. A use case holds the seed alone: no reference answer and no rubric,
+unless one is written for it later. The program also records the runs users made themselves. So a
+step that starts with seeds and no other data, as the first step on a project developed by other
+means does, still gives the run reviewer runs to read.
 
 Inside the step, a step may include trial runs, and may include none. After the coder's step 5, the
 developer makes one or more trial runs of the candidate v+1, side by side with v when both can run.
@@ -185,13 +187,21 @@ no runs.
 
 ## Triggering and chaining
 
-A chain is the order of the step's hand-offs. At each hand-off, the role that finishes writes its
-entries into the layer's `S/data/<type>/`, and the next role takes them from there.
+A chain is the order of the step's hand-offs. At each hand-off, the role that finishes returns its
+entries in its reply, a program writes them into the layer's `S/data/<type>/`, and the next role
+takes them from there.
+
+Programs record; models judge. Copying a seed, running the run command, saving an entry, filling in
+who wrote it, and writing the outbox need no judgement, so a program does them, in seconds, word for
+word. A hand-off that only records names a program instead of a role: `S/src/record.sh` records the
+seeds as use cases and makes and records the runs, with no model. A model is called only for what
+needs judgement: grades, findings, proposals, reviews, decisions, code.
 
 | Step | Role | Writes | Next |
 |---|---|---|---|
-| use cases | user | use cases | the user, for runs |
-| runs | user | run records, run grades | run reviewer |
+| use cases | program | use cases, from users' seeds | the program, for runs |
+| runs | program | run records | the user, for grades |
+| grades | user | run grades | run reviewer |
 | 1. monitor | run reviewer | run reviews | planner |
 | 2. propose | planner | proposals | proposal reviewer |
 | 3. review | proposal reviewer | proposal reviews | planner, until the loop ends; then the developer |
@@ -202,7 +212,8 @@ entries into the layer's `S/data/<type>/`, and the next role takes them from the
 | 7. release | decision maker | a release decision | coder |
 | merge | coder | the merge, in the step's log | decision maker |
 | pick up | decision maker | the findings picked up, or none | the planner, with those findings, or the user |
-| 8. use case | user | a use case, run records, run grades | the step's end |
+| 8. use case | program | a use case, a run record | the user, for the grade |
+| grade | user | a run grade | the step's end |
 
 A hand-off may name the types it needs. `step.sh` skips the hand-off when none of those types
 gained an entry earlier in the same step: the planner proposes only from new findings, and the
@@ -224,11 +235,11 @@ entries (`status`, `decided`, `reason`, and `earlier` for an edited entry, `data
 step's log, so they travel upward like any other entry.
 
 The developer is consulted at the end of each step listed in `chain.json`'s `consult`: by default
-steps 1, 3 (propose and review, shown together), 4, 5, 6, 7 and 8. The hand-offs that only record,
-the user's seed as a use case and the user's runs, need no consultation. When a step no longer needs
-the developer, the developer takes it out of `consult`, and its work is shown with the next
-consulted step. (Interrupt and resume in human-in-the-loop agent frameworks, such as LangGraph;
-levels of automation, Sheridan and Verplank, and Parasuraman, Sheridan and Wickens 2000.)
+steps 1, 3 (propose and review, shown together), 4, 5, 6, 7 and 8. The hand-offs a program plays
+only record, and need no consultation. When a step no longer needs the developer, the developer
+takes it out of `consult`, and its work is shown with the next consulted step. (Interrupt and resume
+in human-in-the-loop agent frameworks, such as LangGraph; levels of automation, Sheridan and
+Verplank, and Parasuraman, Sheridan and Wickens 2000.)
 
 A Claude Code session runs S with the developer (the skill `run-s`). It plays the steps with
 `step.sh`, shows each consulted step's work, and records the developer's answer with
@@ -242,18 +253,21 @@ role shares, such as how RSI differs from the maintenance of a live website. The
 `prompt.md` follows, then the task. A rule that holds for every role is written in the global
 prompt alone, not in the role prompts (`habits.md`, one rule per decision).
 
-`S/src/chain.json` holds the layer's chain: each hand-off, its role, what the role writes, how
-the hand-off starts, how many rounds the propose-review loop may take, the layer's run command,
-and the leg to the layer above. `S/src/step.sh <layer root>` plays the chain. It gives each role
-its prompt, its settings and the step so far, records each hand-off in the step's log
-`S/steps/<step id>/`, and stops at the end of each consulted step. `step.sh <layer root>
---from <hand-off>` resumes there. When a role writes an entry tagged `"upstream": "candidate"`,
-`step.sh` has the same role's sending agent revise the entry into `S/outbox/<type>/`
-(`upstream.md`).
+`S/src/chain.json` holds the layer's chain: each hand-off, its role or its program, what it writes,
+how the hand-off starts, how many rounds the propose-review loop may take, the layer's run command
+(`{seed}` marks where the seed goes), the folder of seeds users give (`seeds`), the folder of runs
+users make (`user_runs`), and the leg to the layer above. A program hand-off that must wait for a
+person, such as step 8 with no new seed, stops the step and says what it needs. `S/src/step.sh
+<layer root>` plays the chain. It gives each role its prompt, its settings and the step so far,
+records each hand-off in the step's log `S/steps/<step id>/`, and stops at the end of each consulted
+step. `step.sh <layer root> --from <hand-off>` resumes there. When a role returns an entry tagged
+`"upstream": "candidate"`, `step.sh` has the same role's sending agent revise the entry, and the
+program writes the revision into `S/outbox/<type>/` (`upstream.md`).
 
 When the step completes, `step.sh` holds the submit pass: each role that wrote entries in the
-step tags them again with the whole step in view, and sends each candidate through its section
-"Send" into `S/outbox/<type>/` (`upstream.md`). The coder offers its reusable programs.
+step names, with the whole step in view, those that could help another layer; the program tags
+them, and each candidate goes through its section "Send" into `S/outbox/<type>/` (`upstream.md`).
+The coder offers its reusable programs.
 
 `shared` gives the default chain. A project or a component customises its own `chain.json`:
 which hand-offs start automatically, which wait for a person, which runs a step includes. A layer

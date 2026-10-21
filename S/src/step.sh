@@ -8,8 +8,10 @@
 # The chain is <layer>/S/src/chain.json. For each hand-off, step.sh gives the hand-off's role the
 # global prompt (<layer>/S/src/agents/global.md), then its instructions
 # (<layer>/S/src/agents/<role>/prompt.md, up to its first "## Send"), its settings,
-# the task, and the step so far, in one `claude -p` call in the layer root. The role writes its
-# entries into <layer>/S/data/<type>/. step.sh records the hand-off in the step's log,
+# the task, and the step so far, in one `claude -p` call in the layer root. The role returns its
+# entries in its reply, and S/src/record.sh writes them into <layer>/S/data/<type>/. A hand-off
+# that only records names a "program" instead of a role, and step.sh runs it with no model.
+# step.sh records the hand-off in the step's log,
 # <layer>/S/steps/<step id>/. When the step completes, step.sh holds the submit pass: each role
 # that wrote entries in the step retags them, with the whole step in view, and the role's sending
 # agent revises each candidate into <layer>/S/outbox/<type>/. step.sh stops at a hand-off that waits
@@ -172,7 +174,8 @@ send() {  # send <hand-off index> <entry file>: the role's sending agent revises
     section "$P/$AGENTS_DIR/$role/prompt.md" "$words"
     echo; echo "Lower layer: $LAYER"; echo "Leg: $LEG"; echo; echo "Entry:"; cat "$e"
   } > "$TMP/send"
-  if ask "$h" "$TMP/send" "$TMP/send-reply"; then record "$(jq -r ".handoffs[$h].name" "$CHAIN")" "sent" "$type/$(basename "$e")"
+  if ask "$h" "$TMP/send" "$TMP/send-reply" && "$P/S/src/record.sh" "$P" outbox "$type" "$e" "$TMP/send-reply" >/dev/null; then
+    record "$(jq -r ".handoffs[$h].name" "$CHAIN")" "sent" "$type/$(basename "$e")"
   else record "$(jq -r ".handoffs[$h].name" "$CHAIN")" "send failed" "$type/$(basename "$e")"; fi
 }
 
@@ -187,7 +190,7 @@ step_end() {  # step_end <next hand-off name>: 0 when the step stops for the dev
   local names redo
   names=$(echo $STEP_NAMES | sed 's/ /, /g')
   # A correction goes back to the first hand-off that does work among those the developer was shown.
-  redo=$(jq -r --arg n "$STEP_NAMES" '($n | split(" ")) as $ran | [.handoffs[] | select(.name as $x | $ran | index($x)) | select((.records | not) and ((.writes // []) | length > 0)) | .name][0] // ""' "$CHAIN")
+  redo=$(jq -r --arg n "$STEP_NAMES" '($n | split(" ")) as $ran | [.handoffs[] | select(.name as $x | $ran | index($x)) | select((.records | not) and (.program | not) and ((.writes // []) | length > 0)) | .name][0] // ""' "$CHAIN")
   jq -n --arg st "$CUR" --arg n "$names" --arg e "$STEP_NEW" --arg next "$1" --arg redo "$redo" \
     --arg j "$STEP_JUDGED" '{step: $st, handoffs: $n, entries: ($e | split(" ") | map(select(. != ""))), judged: ($j | split(" ") | map(select(. != ""))), next: $next, redo: $redo}' > "$LOG/gate"
   record "step $CUR" "waits for the developer" "${STEP_NEW:-no new entries}"
@@ -206,7 +209,8 @@ while [ "$h" -lt "$N" ]; do
   fi
   LOOPED=""
   name=$(jq -r ".handoffs[$h].name" "$CHAIN")
-  role=$(jq -r ".handoffs[$h].role" "$CHAIN")
+  role=$(jq -r ".handoffs[$h].role // \"\"" "$CHAIN")
+  program=$(jq -r ".handoffs[$h].program // \"\"" "$CHAIN")
   start=$(jq -r ".handoffs[$h].start // \"auto\"" "$CHAIN")
   run=$(jq -r ".handoffs[$h].run // \"\"" "$CHAIN")
   writes=(); while IFS= read -r w; do writes+=("$w"); done < <(jq -r ".handoffs[$h].writes[]" "$CHAIN")
@@ -224,14 +228,34 @@ while [ "$h" -lt "$N" ]; do
 
   FROM=""
 
-  # Runs: a layer with no run command makes none.
+  # Runs: a layer with no run command makes none. A recording program still records users' runs.
   RUN_KIND=""
   if [ -n "$run" ]; then
-    if [ -z "$RUN_COMMAND" ]; then record "$name" "skipped" "no run command in chain.json"; h=$((h + 1)); continue; fi
+    if [ -z "$RUN_COMMAND" ] && [ -z "$program" ]; then record "$name" "skipped" "no run command in chain.json"; h=$((h + 1)); continue; fi
     RUN_KIND=$run
   fi
 
   entries ${writes[@]+"${writes[@]}"} > "$TMP/before"
+  reply="$LOG/$(printf '%02d' "$h")-$name-$round.reply"
+
+  # A hand-off that only records is played by a program, with no model. Exit 3: the program
+  # waits for a person, such as step 8 for a new use case.
+  if [ -n "$program" ]; then
+    record "$name" "starts" "the program $program"
+    set +e; (cd "$P" && S_LAYER="$P" S_STEP_LOG="$LOG" S_RUN_KIND="${RUN_KIND:-}" bash -c "$program") > "$reply" 2>&1; code=$?; set -e
+    if [ "$code" = 3 ]; then
+      record "$name" "waits for a person" "$(tail -n 1 "$reply")"
+      echo "step: $(tail -n 1 "$reply"). When that is done, resume with --from $name."; return 0
+    fi
+    if [ "$code" != 0 ]; then record "$name" "failed" "the program exited $code; see $(basename "$reply"); resume with --from $name"; return 1; fi
+    entries ${writes[@]+"${writes[@]}"} > "$TMP/after"
+    new=$(comm -13 "$TMP/before" "$TMP/after" | cut -d' ' -f1 | sed "s|^$P/||" | sort -u | paste -sd ' ' -)
+    record "$name" "done" "${new:-no new entries}"
+    STEP_RAN=1; STEP_NEW=$(echo $STEP_NEW $new)
+    [[ " $STEP_NAMES " == *" $name "* ]] || STEP_NAMES=$(echo $STEP_NAMES $name)
+    h=$((h + 1)); continue
+  fi
+
   {
     section "$P/$AGENTS_DIR/$role/prompt.md" ""
     echo
@@ -248,7 +272,7 @@ while [ "$h" -lt "$N" ]; do
     cat "$LOG/log.jsonl" 2>/dev/null || echo "(nothing yet)"
     echo
     if [ ${#writes[@]} -gt 0 ]; then
-      echo "Write each entry you produce as one JSON file, $DATA_DIR/<type>/<entry id>.json, for the types: ${writes[*]}. Follow the format in $DATA_DIR/<type>/README.md and S/specs/data.md. Set \"by\" to \"$role\" with who plays it, and \"upstream\" to \"candidate\" when the entry could help an agent of any role in another component or project do its work better, or to \"local\" otherwise."
+      echo "Return each entry you produce in your reply's \"entries\": one object per entry, with \"type\" (one of: ${writes[*]}), a short \"id\", and the entry's fields in the format of $DATA_DIR/<type>/README.md and S/specs/data.md. To revise an entry, return it whole under its id. The program saves the entries and fills in \"by\"; write no entry files yourself. Set \"upstream\" to \"candidate\" when the entry could help an agent of any role in another component or project do its work better; leave it out otherwise."
     fi
     [ -z "$RUN_KIND" ] || echo "The run command: $RUN_COMMAND. S_RUN_KIND=$RUN_KIND is set, so M.f logs as a $RUN_KIND run."
     if [ -s "$LOG/note" ]; then
@@ -260,11 +284,15 @@ while [ "$h" -lt "$N" ]; do
   } > "$TMP/message"
 
   record "$name" "starts" "the $role${RUN_KIND:+, $RUN_KIND runs}"
-  reply="$LOG/$(printf '%02d' "$h")-$name-$round.reply"
   if ! ask "$h" "$TMP/message" "$reply"; then record "$name" "failed" "claude -p failed; resume with --from $name"; return 1; fi
   # The reply ends with its JSON, bare or in a code fence.
   json=$(perl -0777 -ne 'print $1 if /(\{.*\})\s*(?:```)?\s*$/s' "$reply" | jq -c . 2>/dev/null || true)
   [ -n "$json" ] || json='{}'
+  # The program saves the entries the reply returns.
+  printf '%s\n' "$json" > "$TMP/json"; : > "$TMP/refused"
+  [ ${#writes[@]} -eq 0 ] || "$P/S/src/record.sh" "$P" entries "$role, played by $(jq -r 'if (.model // "no preference") == "no preference" then "the default model" else .model end' "$P/$AGENTS_DIR/$role/settings.json" 2>/dev/null || echo "the default model")" "${writes[*]-}" "$TMP/json" > /dev/null \
+    2> "$TMP/refused" || true
+  while IFS= read -r line; do record "$name" "entry refused" "$line"; done < "$TMP/refused"
 
   entries ${writes[@]+"${writes[@]}"} > "$TMP/after"
   new=$(comm -13 "$TMP/before" "$TMP/after" | cut -d' ' -f1 | sed "s|^$P/||" | sort -u | paste -sd ' ' -)
@@ -303,7 +331,7 @@ record "end" "step complete" ""
 # The submit pass. Each role that wrote entries in this step looks at them again with the whole
 # step in view, sets each one's "upstream" tag, and sends each candidate to the outbox.
 if [ -n "$LEG" ]; then
-  for role in $(jq -r '[.handoffs[].role] | unique | .[]' "$CHAIN"); do
+  for role in $(jq -r '[.handoffs[] | select(.role) | .role] | unique | .[]' "$CHAIN"); do
     h=$(jq --arg r "$role" '[.handoffs[].role] | index($r)' "$CHAIN")
     names=$(jq -r --arg r "$role" '[.handoffs[] | select(.role == $r) | .name] | join(" ")' "$CHAIN")
     mine=""; for n in $names; do
@@ -315,9 +343,12 @@ if [ -n "$LEG" ]; then
     if [ "$role" = coder ]; then
       { section "$P/$AGENTS_DIR/coder/prompt.md" "program"
         echo; echo "Lower layer: $LAYER"; echo "Leg: $LEG"; echo
-        echo "Program: offer each program the coder wrote in this step ($STEPS_DIR/$ID/, git log) that could help an agent of any role in another component or project. Write nothing when none could."
+        echo "Program: offer the program the coder wrote in this step ($STEPS_DIR/$ID/, git log) that could best help an agent of any role in another component or project. Reply {} when none could."
       } > "$TMP/submit"
-      ask "$h" "$TMP/submit" "$LOG/submit-coder.reply" && record "submit" "coder offered" "see S/outbox/changes/" || record "submit" "coder failed" ""
+      if ask "$h" "$TMP/submit" "$LOG/submit-coder.reply"; then
+        offered=$("$P/S/src/record.sh" "$P" outbox changes - "$LOG/submit-coder.reply" 2>/dev/null || true)
+        record "submit" "coder offered" "${offered:-nothing}"
+      else record "submit" "coder failed" ""; fi
       continue
     fi
     { section "$P/$AGENTS_DIR/$role/prompt.md" ""
@@ -325,9 +356,14 @@ if [ -n "$LEG" ]; then
       echo "You play the $role at the end of step $ID. The step so far is in $STEPS_DIR/$ID/log.jsonl, and each role's reply in $STEPS_DIR/$ID/. Your entries from this step:"
       for e in $mine; do echo "- $e"; done
       echo
-      echo "For each of your entries, decide with the whole step in view whether it could help an agent of any role, in another component or project, do its own work better: to write use cases, review runs, plan, review, decide, code or review code. Set its \"upstream\" to \"candidate\" when it could, and to \"local\" when it could not, editing the file in place. Change nothing else. Reply with {\"candidates\": [\"<path>\"]}."
+      echo "For each of your entries, decide with the whole step in view whether it could help an agent of any role, in another component or project, do its own work better: to write use cases, review runs, plan, review, decide, code or review code. Edit no file. Reply with {\"candidates\": [\"<path>\"]}, the paths of those that could; the program tags them \"candidate\" and the rest \"local\"."
     } > "$TMP/submit"
     if ! ask "$h" "$TMP/submit" "$LOG/submit-$role.reply"; then record "submit" "failed" "the $role"; continue; fi
+    cands=" $(perl -0777 -ne 'print $1 if /(\{.*\})\s*(?:```)?\s*$/s' "$LOG/submit-$role.reply" | jq -r '(.candidates // [])[]' 2>/dev/null | sed "s|^$P/||" | paste -sd ' ' -) "
+    for e in $mine; do
+      tag=local; [[ $cands == *" $e "* ]] && tag=candidate
+      jq --arg t "$tag" '.upstream = $t' "$P/$e" > "$TMP/tag" && cp "$TMP/tag" "$P/$e"
+    done
     for e in $mine; do
       [ "$(jq -r '.upstream // ""' "$P/$e" 2>/dev/null)" != candidate ] || send "$h" "$P/$e"
     done

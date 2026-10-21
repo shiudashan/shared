@@ -26,15 +26,20 @@ customisations.
    3. **Data.** Each `shared/S/data/<type>/` goes to `<project>/S/data/<type>/`. Each
       `shared/S/outbox/<type>/` goes to `<project>/S/outbox/<type>/`, empty but for a `.gitkeep`,
       so the project's sending agents find the outbox (`upstream.md`).
-   4. **Programs.** `shared/S/src/upstream.sh`, `step.sh`, `gate.sh`, `gate-run.sh` and
-      `chain.json` go to `<project>/S/src/`. Each
+   4. **Programs.** `shared/S/src/upstream.sh`, `step.sh`, `gate.sh`, `gate-run.sh`,
+      `record.sh` and `chain.json` go to `<project>/S/src/`. Each
       `shared/S/src/agents/<role>/` goes to `<project>/S/src/agents/<role>/`. Then a
       `claude -p` step per role customises the agent for the project as a whole: what the
       project is, how the project lays out its prototypes and their generations, the project's
       release rules, languages and review rules. The rules every role shares stay in
       `S/src/agents/global.md`, and the customisation does not repeat them. The customisation names no single
       prototype or generation; the project's own sync adds what is specific to a generation
-      when the project syncs a generation.
+      when the project syncs a generation. When `record.sh` arrives, one `claude -p` step sets up
+      recording: it names in `chain.json` the folder of users' seeds and the folder of users' own
+      runs, and marks with `{seed}` where the run command takes the seed. When a user's run holds
+      more than `record.sh` records, such as the user's words in each round, the step writes the
+      layer's own recording program, `S/src/record-runs.sh`, which calls no model. A model spent
+      once at sync replaces a model spent at every step.
    5. **Report.** Sync lists what it added, updated, merged and removed, and every conflict.
       The project reviews the changes, customises them, and commits them.
 
@@ -59,7 +64,7 @@ A later run starts when the project moves the pin: `git submodule update --remot
   the same name. The project keeps its own version, which holds its own context, and marks it
   `"upstream": "accepted"`.
 - A file that is new to the project on a later run, such as a new program, gets the first run's
-  customisation when it arrives: an agent, or the chain.
+  customisation when it arrives: an agent, the chain, or the recording set-up.
 - A file shared removed is removed from the project if the project had not changed it, and kept
   and reported if it had. A file the project deleted stays deleted.
 

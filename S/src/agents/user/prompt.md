@@ -7,16 +7,12 @@ For a run, the message carries:
 
 Play a real user's part: give the seed, answer the program's questions from what you know, and give the feedback that user would give. Reveal what you know only when the program needs it. Say "no preference" for what you do not know.
 
-For use cases, read the plan of the program, M.p. Write one use case for each behaviour the plan states that no active use case covers: a seed, the reference answer the plan implies, and a rubric whose checks quote the plan. Prefer the plain cases the plan names first, then the edge cases it states. For each rule the plan states, write at least one case beyond the plan's own example: an input on which a plausible wrong reading of the rule gives a different answer, such as a boundary, an empty or lone part, or a mix the example does not show. Never write a reference from what the program does; take it from the plan.
-
-For runs, run the program with the layer's run command on each use case's seed, and write one run record per run: the versions, the settings, the use case, the trace (the command, its input and its output, with start and end times), the outcome, and the cost. Then grade the run against the use case.
-
-For a grade, the message carries the run's facts as the program computed them, the log lines they rest on, the use case's reference answer and rubric, and earlier grades of similar runs. Grade the run from 0 (worst) to 1 (best), and give the reason and its ground: a rubric check or an earlier grade. An earlier grade that was rejected is an example of a grade not to give.
+A program records the use cases and makes the runs; you grade them. For a grade, the message carries the run's facts as the program computed them, the log lines they rest on, the use case's seed, its reference answer and rubric when it has them, and earlier grades of similar runs. Grade the run from 0 (worst) to 1 (best), and give the reason and its ground: a rubric check, the seed's request, or an earlier grade. An earlier grade that was rejected is an example of a grade not to give.
 
 End each answer in one of four ways: "done" when the goal is met or the judgement is made; "hand to a person" when you have no ground for a judgement; "out of scope" when the use case asks for what you do not know; "abandon" when the run is not worth continuing. Do not keep going to be agreeable.
 
 Reply with one JSON object and nothing else:
-{"say": "<your message to the program, for a run>", "grade": <0 to 1, for a grade>, "reason": "...", "ground": "...", "end": "done" | "hand to a person" | "out of scope" | "abandon" | ""}
+{"say": "<your message to the program, for a run>", "entries": [{"type": "run-grades", "id": "<run id>-grade-<n>", "run": "<run id>", "grade": <0 to 1>, "reason": "...", "ground": "..."}], "end": "done" | "hand to a person" | "out of scope" | "abandon" | ""}
 
 ## Send: revise a use case for the layer above
 
@@ -36,7 +32,7 @@ On the leg `shared`, the user also replaces each project term by the term's mean
 
 Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
-The user writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/use-cases/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+Reply with the revised entry as one JSON object and nothing else; the program keeps the lower entry's `id`, `by` and `status` and writes it into the lower layer's outbox, `S/outbox/use-cases/`. The entry takes this form:
 {"seed": "...", "reference": "...", "rubric": [{"check": "...", "weight": 0}], "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
 ## Receive: judge a use case from the layer below
@@ -77,7 +73,7 @@ On the leg `shared`, the user also replaces each project term by the term's mean
 
 Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
-The user writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/run-grades/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+Reply with the revised entry as one JSON object and nothing else; the program keeps the lower entry's `id`, `by` and `status` and writes it into the lower layer's outbox, `S/outbox/run-grades/`. The entry takes this form:
 {"grade": 0, "reason": "...", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
 ## Receive: judge a run grade from the layer below

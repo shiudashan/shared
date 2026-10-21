@@ -10,8 +10,10 @@ Each folder will also hold the code that plays the role.
 (`S/specs/step.md`, "Triggering and chaining"). For each hand-off it gives the role the global
 prompt, `global.md`, which holds the rules every role shares; then the text of the role's
 `prompt.md` above the first "Send" section, the role's settings, the task and the
-step so far, and records the hand-off in `S/steps/<step id>/`. It then gives each new entry
-tagged as a candidate to the role's "Send" section.
+step so far, and records the hand-off in `S/steps/<step id>/`. The role returns its entries in
+its reply, and `S/src/record.sh` saves them. A hand-off that only records, such as the seeds and
+the runs, is played by `S/src/record.sh` alone, with no model. step.sh then gives each new entry
+tagged as a candidate to the role's "Send" section, and saves the revision into the outbox.
 
 **Developer mode.** At the end of each step in `chain.json`'s `consult`, the step waits for the
 developer. The session running S records the developer's answer with `S/src/gate.sh <layer root>

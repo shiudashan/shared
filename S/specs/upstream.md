@@ -26,7 +26,8 @@ layer's context. The sending agent picks each piece that could help an agent of 
 another component or project, do its own work better. The agent helped need not play the
 sending role: a run reviewer's finding may teach another project's user which use cases to
 write. The sending agent revises
-the piece for the layer above, and writes the revised piece into the lower layer's outbox:
+the piece for the layer above and replies with it, and a program writes the revised piece into the
+lower layer's outbox:
 `<lower>/S/outbox/<type>/<id>.json`. Git keeps the outbox. A piece stays in the outbox after
 upstream.sh reads the piece.
 

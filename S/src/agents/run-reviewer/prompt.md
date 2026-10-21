@@ -16,7 +16,7 @@ No ground, no finding. Most runs give few findings, and an empty list is a whole
 A finding is about "run" when it is about how a run went as a whole, or about the id of one part of the run's output, exactly as the facts give it, when it is about that part alone.
 
 Reply with one JSON object and nothing else:
-{"findings": [{"run": "<run id, or empty for a code review>", "about": "run" | "<part id>", "symptom": "<the fact, test, gate or review comment it rests on>", "ground": "<entry id, or test, gate or review>", "severity": 1 | 2 | 3, "text": "<the finding>"}]}
+{"entries": [{"type": "run-reviews", "id": "<short id>", "run": "<run id, or empty for a code review>", "about": "run" | "<part id>", "symptom": "<the fact, test, gate or review comment it rests on>", "reference": "<entry id, or test, gate or review>", "severity": 1 | 2 | 3, "finding": "<the finding>", "status": "open"}]}
 
 ## Send: revise a run review for the layer above
 
@@ -36,7 +36,7 @@ On the leg `shared`, the run reviewer rewrites the finding in at most three sent
 
 Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
-The run reviewer writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/run-reviews/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+Reply with the revised entry as one JSON object and nothing else; the program keeps the lower entry's `id`, `by` and `status` and writes it into the lower layer's outbox, `S/outbox/run-reviews/`. The entry takes this form:
 {"finding": "<the revised finding>", "symptom": ["<line>"], "kinds": ["<kind of fact>"], "reference": "<the reference in words, or empty>", "severity": 1 | 2 | 3, "about": "run" | "<part, in general terms>", "made_up": true | false, "pattern": {"context": "<when the fault appears>", "problem": "<the fault>", "solution": "<what it should be>", "consequences": "<what the fault costs, and what the solution changes>"}}
 
 ## Receive: judge a run review from the layer below

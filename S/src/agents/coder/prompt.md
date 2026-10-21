@@ -25,7 +25,7 @@ The coder replaces each path and name of the lower layer by the layer above's, k
 
 A program offered before is offered again under the same `id`.
 
-The coder writes the change into the lower layer's outbox, as one JSON file at `S/outbox/changes/<id>.json`, with a short `id` that names the program, in this form:
+Reply with the change as one JSON object and nothing else, with a short `id` that names the program; the program writes it into the lower layer's outbox, `S/outbox/changes/`. The form:
 {"id": "...", "title": "<what the change adds>", "why": "<the job the program does, and why the layer above needs the job>", "files": [{"path": "...", "content": "..."}], "check": "<the command that runs the tests>"}
 
 ## Receive: judge a change from the layer below

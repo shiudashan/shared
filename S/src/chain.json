@@ -4,12 +4,14 @@
   "rounds": 2,
   "consult": [1, 3, 4, 5, 6, 7, 8],
   "run_command": "",
+  "seeds": "",
+  "user_runs": "",
   "claude_flags": ["--permission-mode", "acceptEdits"],
   "handoffs": [
-    {"name": "use-cases", "step": 1, "role": "user", "records": true, "writes": ["use-cases"], "start": "auto",
-     "do": "Write a use case for each behaviour the plan states that no active use case covers, and retire any use case the plan no longer supports."},
-    {"name": "runs", "step": 1, "role": "user", "records": true, "writes": ["run-records", "run-grades"], "start": "auto", "run": "true",
-     "do": "Run the current version on each active use case that has no run record of the current version, with the run command. Grade each run."},
+    {"name": "use-cases", "step": 1, "program": "S/src/record.sh . seeds", "writes": ["use-cases"], "start": "auto"},
+    {"name": "runs", "step": 1, "program": "S/src/record.sh . runs", "writes": ["run-records"], "start": "auto", "run": "true"},
+    {"name": "grades", "step": 1, "role": "user", "writes": ["run-grades"], "needs": ["run-records"], "start": "auto",
+     "do": "Grade each run record that has no grade yet."},
     {"name": "monitor", "step": 1, "role": "run-reviewer", "writes": ["run-reviews"], "start": "auto",
      "do": "Read the run records and the code reviews not yet reviewed, and write findings."},
     {"name": "propose", "step": 2, "role": "planner", "writes": ["proposals"], "needs": ["run-reviews"], "start": "auto",
@@ -32,7 +34,8 @@
      "do": "If the release decision released v+1, merge each passed change branch into the branch the step started on, keep each change's tag, and check that branch out. If it kept v, check out the branch the step started on and leave the change branches unmerged. Report the branch now checked out and its commit."},
     {"name": "pick-up", "step": "7b", "role": "decision-maker", "writes": ["decisions"], "start": "auto", "loop": "propose", "rounds": 20,
      "do": "Decide whether to pick up any remaining open finding, building on the version chosen at release. To pick up one or more, reply with \"loop\": \"again\" and \"picked\": the ids of those findings alone, and say nothing about the others. To pick up none, write one decision that accepts every remaining open finding as a known defect of the version chosen at release, which is then released to users, and reply with \"loop\": \"done\"."},
-    {"name": "use-case", "step": 8, "role": "user", "writes": ["use-cases", "run-records", "run-grades"], "start": "auto", "run": "true",
-     "do": "Take a new use case, different from the earlier ones: a seed a user gave that no run has used yet. Write it as a use case, run the version in use on it with the run command, and grade the run. Open findings do not hold this back. When there is no such seed, write nothing, and say in your reply that the step needs a new use case from a user."}
+    {"name": "use-case", "step": 8, "program": "S/src/record.sh . new-case", "writes": ["use-cases", "run-records"], "start": "auto", "run": "true"},
+    {"name": "use-case-grade", "step": 8, "role": "user", "writes": ["run-grades"], "needs": ["run-records"], "start": "auto",
+     "do": "Grade the run of the new use case."}
   ]
 }

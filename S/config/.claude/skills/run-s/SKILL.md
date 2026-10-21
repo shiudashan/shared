@@ -14,7 +14,7 @@ puts that state beside every message the developer sends.
 
 | Step | Hand-offs | The developer sees |
 |---|---|---|
-| 1 monitor | use-cases, runs, monitor | the findings |
+| 1 monitor | use-cases and runs (a program), grades, monitor | the findings |
 | 2–3 propose and review | propose, review (looped) | the proposals with the reviewer's corrections |
 | 4 decide | developer-review, decide | what was approved, postponed or rejected |
 | 5 code | code, trial-runs | each change and its tests and trial runs |

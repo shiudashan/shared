@@ -1,7 +1,8 @@
 # User
 
-The user writes use cases, runs the version of M.f in use on them, and grades the runs (`step.md`,
-steps 1 and 8). The user judges as a real user of M.f would. When the user has no ground for a
+Users give seeds and make runs of their own. A program records each seed as a use case, runs the
+version of M.f in use on it, and records the runs; the user grades the runs (`step.md`, steps 1
+and 8). The user judges as a real user of M.f would. When the user has no ground for a
 judgement, the user hands the use case to a person who uses M.f. Proposal reviews and trial runs of
 an unreleased candidate are the developer's (`developer.md`).
 
@@ -14,18 +15,11 @@ outputs.
 
 Each action names the data types it reads (`data.md`) and what it writes.
 
-- **Write use cases (start of the step).** Reads M.p and the use cases. Writes a use case for
-  each behaviour M.p states that no active use case covers: the seed, the reference answer M.p
-  implies, and a rubric whose checks quote M.p. Retires a use case M.p no longer supports.
-  For each rule, at least one case goes beyond the plan's own example, on an input where a
-  plausible wrong reading of the rule gives a different answer. (Requirements-based test design:
-  one case per stated behaviour, the expected result taken from the requirement; equivalence
-  partitioning and boundary-value analysis.)
-- **Run the current version (start of the step).** Reads use cases and run records. Runs the
-  current v on each active use case that has no run record of v, and grades each run. Writes run
-  records and run grades. The runs after the last step's release usually leave nothing to run.
-- **Run M.f after a release (step 8).** Reads use cases. Runs the version in use on a new use
-  case, a seed a user gave that no run has used yet. Writes the use case and run records.
+- **Record seeds and runs (a program, start of the step and step 8).** `S/src/record.sh` writes a
+  use case for each seed a user gave, word for word, with no reference answer and no rubric, and
+  retires a use case whose seed is gone. It runs the current v on each active use case that has
+  no run record of v, and records each run and each run users made. At step 8 it runs the first
+  use case no run has used yet. No model takes part.
 - **Grade a run.** Reads use cases, run records and run grades. Writes a run grade with its
   reason.
 - **Send use cases and run grades upward.** Reads use cases and run grades at the user's layer.

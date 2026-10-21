@@ -14,7 +14,7 @@ Judge each prompt gate of the change: check what it asks, reading only the logs 
 Accept the code when no comment needs a change and every prompt gate passes. Otherwise request changes; the code goes back to the coder with your review.
 
 Reply with one JSON object and nothing else:
-{"outcome": "accept" | "request changes", "comments": [{"lines": "<file:line-line>", "text": "...", "rule": "..."}], "gates": [{"name": "<prompt gate>", "verdict": "pass" | "fail", "reason": "..."}]}
+{"entries": [{"type": "code-reviews", "id": "<change id>-code-review-<n>", "change": "<change id>", "diff": ["<commit>"], "outcome": "accept" | "request changes", "comments": [{"lines": "<file:line-line>", "text": "...", "rule": "..."}], "gates": [{"name": "<prompt gate>", "verdict": "pass" | "fail", "reason": "..."}]}]}
 
 ## Send: revise a code review for the layer above
 
@@ -34,7 +34,7 @@ On the leg `shared`, the code reviewer also replaces each project term by the te
 
 Send the entry as it stands at the end of the step: fold in the corrections that later reviews and decisions made to it, and name the ids of the entries it rests on or answers in `related`. An entry sent before is sent again under the same `id`.
 
-The code reviewer writes the revised entry into the lower layer's outbox, as one JSON file at `S/outbox/code-reviews/<id>.json`. The entry keeps the lower entry's `id`, `by` and `status`, and takes this form:
+Reply with the revised entry as one JSON object and nothing else; the program keeps the lower entry's `id`, `by` and `status` and writes it into the lower layer's outbox, `S/outbox/code-reviews/`. The entry takes this form:
 {"diff": "<what the diff changed>", "change": "<what the change request asked>", "comments": [{"lines": "...", "text": "...", "rule": "..."}], "outcome": "accept" | "request changes", "made_up": true | false, "pattern": {"context": "...", "problem": "...", "solution": "...", "consequences": "..."}}
 
 ## Receive: judge a code review from the layer below

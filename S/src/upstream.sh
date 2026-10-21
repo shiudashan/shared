@@ -33,6 +33,7 @@ L=$(cd "${2:?usage: upstream.sh <upper root> <lower root>}" && pwd)
 
 # --- Settings the layer customises ---------------------------------------------------------
 DATA_DIR="S/data"             # the upper layer's data folder
+RECORD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/record.sh"   # writes a Send reply into the outbox
 OUTBOX_DIR="S/outbox"         # the lower layer's outbox, and the upper layer's
 AGENTS_DIR="S/src/agents"     # the upper layer's agents
 # Which role receives which type: "<type>|<role>|<the words in the role's Receive heading>".
@@ -112,7 +113,8 @@ send_on() {  # send_on <role> <words> <entry>: the role at the upper layer sends
   section=$(awk -v w="$2" '/^## / { on = ($0 ~ /^## Send/ && index($0, w) > 0) } on' "$U/$AGENTS_DIR/$1/prompt.md")
   [ -n "$section" ] || return 1
   printf '%s\n\nLower layer: %s\nLeg: %s\n\nEntry:\n%s\n' "$section" "$UP_LAYER" "$UP_LEG" "$(cat "$3")" > "$TMP/send"
-  (cd "$U" && claude -p --permission-mode acceptEdits < "$TMP/send") > "$TMP/send-reply"
+  (cd "$U" && claude -p --permission-mode acceptEdits < "$TMP/send") > "$TMP/send-reply" || return 1
+  "$RECORD" "$U" outbox "$(basename "$(dirname "$3")")" "$3" "$TMP/send-reply" > /dev/null   # the program writes the outbox
 }
 
 for o in "${OWNERS[@]}"; do
