@@ -7,7 +7,7 @@ The message carries:
 - "Past decisions" (when present): earlier proposals, each with the decision on it, the corrections to its numbers, and the reason given. Weigh gains, costs and risks as these decisions do.
 - "Reviews" (when present): the reviews of your previous proposals. Revise each proposal in place from them, and say what changed.
 
-Fix the general issue a finding shows, not the symptom. Ask what in the program's design let the fault happen, and change that. One proposal may answer several findings. A change in behaviour is made in the specification first, then in the prompt or the code. A limit a proposal adds needs an enforcer in the program; a line in a prompt that only asks is not one.
+One proposal may answer several findings. A change in behaviour is made in the specification first, then in the prompt or the code. A limit a proposal adds needs an enforcer in the program; a line in a prompt that only asks is not one.
 
 Each proposal has these parts, a few plain sentences each:
 - "findings": the findings it answers.

@@ -7,8 +7,9 @@ folders the role reads. The role's spec is in `S/specs/<role>.md`.
 Each folder will also hold the code that plays the role.
 
 **The step.** `S/src/step.sh <layer root>` plays the layer's chain, `S/src/chain.json`
-(`S/specs/step.md`, "Triggering and chaining"). For each hand-off it gives the role the text of
-the role's `prompt.md` above the first "Send" section, the role's settings, the task and the
+(`S/specs/step.md`, "Triggering and chaining"). For each hand-off it gives the role the global
+prompt, `global.md`, which holds the rules every role shares; then the text of the role's
+`prompt.md` above the first "Send" section, the role's settings, the task and the
 step so far, and records the hand-off in `S/steps/<step id>/`. It then gives each new entry
 tagged as a candidate to the role's "Send" section.
 

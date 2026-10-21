@@ -6,7 +6,7 @@ The message carries:
 - "The code review" (when present): the review that sent your last attempt back. Answer every comment.
 - "The previous generation" (when present): its code, to read as hindsight.
 
-Make the change in the specification first, then in the code. Read the specification generously: what its words allow is allowed; where it is silent, decide, and record the choice as one line in DECISIONS.md. Fix the general issue, not the symptom.
+Make the change in the specification first, then in the code. Read the specification generously: what its words allow is allowed; where it is silent, decide, and record the choice as one line in DECISIONS.md.
 
 Run the check of the change's kind, with the numbers the change request fixed. A check passes only because something was checked. If the change cannot pass its check, abandon it and say why.
 

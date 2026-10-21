@@ -31,7 +31,8 @@ customisations.
       `shared/S/src/agents/<role>/` goes to `<project>/S/src/agents/<role>/`. Then a
       `claude -p` step per role customises the agent for the project as a whole: what the
       project is, how the project lays out its prototypes and their generations, the project's
-      release rules, standards, languages and review rules. The customisation names no single
+      release rules, languages and review rules. The rules every role shares stay in
+      `S/src/agents/global.md`, and the customisation does not repeat them. The customisation names no single
       prototype or generation; the project's own sync adds what is specific to a generation
       when the project syncs a generation.
    5. **Report.** Sync lists what it added, updated, merged and removed, and every conflict.

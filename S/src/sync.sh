@@ -234,7 +234,8 @@ else
 project. Read its role spec in S/specs/$role.md, the project's CLAUDE.md, and the project's own \
 specs and code. Edit prompt.md and settings.json in place so the agent knows, as far as the role \
 needs, the project as a whole: what the project is, how the project lays out its prototypes and \
-their generations, its release rules, its standards, and its languages and review rules. Name no \
+their generations, its release rules, and its languages and review rules. The rules every \
+role shares are in $AGENTS_DIR/global.md; do not repeat them. Name no \
 single prototype or generation, and point to no folder inside one: the project's own sync adds \
 what is specific to a generation. Do not read obsolete/ or any archived copy. Keep the role's \
 actions and data as the spec gives them." || true

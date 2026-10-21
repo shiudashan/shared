@@ -69,6 +69,13 @@ the proposal before the run.
   off, nothing changes. Both paths run on the same use cases, with success and failure conditions
   written before the run. The removal of the losing path is planned, with a date.
 
+A change may defer the tests of its check. In RSI the design changes often from step to step,
+so complete tests for a design that is about to change can be wasted work. The coder lists each
+deferred test, with a priority, in the step's reply and in the change's commit message. At the
+next step 1 the run reviewer writes each open deferred test as a finding, and the planner
+schedules it with the other work. All tests should be complete at release; a release with open
+tests says so (step 7).
+
 
 ## The step, from v to v+1
 
@@ -113,7 +120,8 @@ whatever runs exist, and with none.
    GitHub's required review, approve or request changes.)
 7. **Release.**
    1. **The decision maker chooses** between the version in use now and the new version with
-      this step's changes, with the code review and the trial runs in hand.
+      this step's changes, with the code review, the trial runs and the list of open deferred
+      tests in hand. A release with open tests names them in the release decision.
       - When the decision maker chooses the new version, the coder adds this step's changes to
         the branch the step started from.
       - When the decision maker keeps the version in use, the coder leaves this step's changes
@@ -129,6 +137,12 @@ whatever runs exist, and with none.
         those defects.
 
    (Software Engineering at Google; LLVM; feature toggles; DORA on change approval.)
+8. **Use case.** After the release, the user runs the version in use on a new use case, one
+   different from the earlier ones. Open findings do not hold this back. Steps of S alternate in
+   this way between the design and new use cases: a new use case shows parts the design must add,
+   parts it can remove, and existing parts it can use again. The new case is a seed the person gave
+   that no run has used yet. When there is none, the step stops and asks the person for one. The
+   run records go to the next step 1.
 
 About releases:
 - A release goes to developers, and a released version is one that developers can run.
@@ -170,7 +184,8 @@ entries into the layer's `S/data/<type>/`, and the next role takes them from the
 | 6. code review | code reviewer | code reviews | decision maker |
 | 7. release | decision maker | a release decision | coder |
 | merge | coder | the merge, in the step's log | decision maker |
-| pick up | decision maker | the findings picked up, or none | the planner, with those findings, or the step's end |
+| pick up | decision maker | the findings picked up, or none | the planner, with those findings, or the user |
+| 8. use case | user | a use case, run records, run grades | the step's end |
 
 A hand-off may name the types it needs. `step.sh` skips the hand-off when none of those types
 gained an entry earlier in the same step: the planner proposes only from new findings, and the
@@ -192,7 +207,7 @@ entries (`status`, `decided`, `reason`, and `earlier` for an edited entry, `data
 step's log, so they travel upward like any other entry.
 
 The developer is consulted at the end of each step listed in `chain.json`'s `consult`: by default
-steps 1, 3 (propose and review, shown together), 4, 5, 6 and 7. The hand-offs that only record,
+steps 1, 3 (propose and review, shown together), 4, 5, 6, 7 and 8. The hand-offs that only record,
 the seed as a use case and the Director's runs, need no consultation. When a step no longer needs
 the developer, the developer takes it out of `consult`, and its work is shown with the next
 consulted step. (Interrupt and resume in human-in-the-loop agent frameworks, such as LangGraph;
@@ -204,6 +219,11 @@ A Claude Code session runs S with the developer (the skill `run-s`). It plays th
 puts where the step stands beside each of the developer's messages, so the session works from the
 step's state, not from the chat. Each role also names, in its reply, the entries it relied on, and
 the step's log keeps them.
+
+Every message to a role starts with the global prompt, `S/src/agents/global.md`: the rules every
+role shares, such as how RSI differs from the maintenance of a live website. The role's own
+`prompt.md` follows, then the task. A rule that holds for every role is written in the global
+prompt alone, not in the role prompts (`habits.md`, one rule per decision).
 
 `S/src/chain.json` holds the layer's chain: each hand-off, its role, what the role writes, how
 the hand-off starts, how many rounds the propose-review loop may take, the layer's run command,

@@ -5,8 +5,9 @@
 #   S/src/step.sh <layer root>                       starts a new step
 #   S/src/step.sh <layer root> --from <hand-off>     resumes the latest step at that hand-off
 #
-# The chain is <layer>/S/src/chain.json. For each hand-off, step.sh gives the hand-off's role its
-# instructions (<layer>/S/src/agents/<role>/prompt.md, up to its first "## Send"), its settings,
+# The chain is <layer>/S/src/chain.json. For each hand-off, step.sh gives the hand-off's role the
+# global prompt (<layer>/S/src/agents/global.md), then its instructions
+# (<layer>/S/src/agents/<role>/prompt.md, up to its first "## Send"), its settings,
 # the task, and the step so far, in one `claude -p` call in the layer root. The role writes its
 # entries into <layer>/S/data/<type>/. step.sh records the hand-off in the step's log,
 # <layer>/S/steps/<step id>/. When the step completes, step.sh holds the submit pass: each role
@@ -40,6 +41,8 @@ SEND_WORDS=(
 
 command -v jq >/dev/null || { echo "step: needs jq" >&2; exit 2; }
 [ -f "$CHAIN" ] || { echo "step: no chain at $CHAIN" >&2; exit 2; }
+GLOBAL="$P/$AGENTS_DIR/global.md"   # the rules every role shares
+[ -f "$GLOBAL" ] || { echo "step: no global prompt at $GLOBAL" >&2; exit 2; }
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 
 N=$(jq '.handoffs | length' "$CHAIN")
@@ -77,7 +80,9 @@ fresh() {  # fresh <type>: entries of <type> written since the last completed st
   if [ -n "$prev" ]; then find "$P/$DATA_DIR/$t" -name '*.json' -newer "$P/$STEPS_DIR/$prev/branch" 2>/dev/null
   else for f in "$P/$DATA_DIR/$t"/*.json; do [ -e "$f" ] && [ "$(jq -r '.made_up // false' "$f" 2>/dev/null)" != true ] && echo "$f"; done; fi
 }
-section() {  # section <prompt.md> <send words>: the role's instructions, or its "## Send" section
+section() {  # section <prompt.md> <send words>: the global prompt, then the role's instructions,
+  # or its "## Send" section
+  cat "$GLOBAL"
   if [ -z "$2" ]; then awk '/^## Send/ {exit} {print}' "$1"
   else awk -v w="$2" '/^## / { on = ($0 ~ /^## Send/ && index($0, w) > 0) } on' "$1"; fi
 }
