@@ -4,9 +4,12 @@ How a change is made, checked and recorded. The step holds for every project tha
 
 ## Terms
 
-- **The person** directs a project. The person says what the person wants, and then labels:
-  the person grades runs, gives feedback with reasons, and approves or turns down proposals and
-  releases.
+- **The user** takes a released version of M.f and uses it: gives it seeds, answers its
+  questions, gives feedback during a run, and grades runs. A grade with its reason is how the
+  user reports a bug.
+- **The developer** develops M through S: ranks the bugs, features and refactors, reviews the
+  proposals, makes trial runs of the unreleased candidate, and approves or turns down proposals
+  and releases.
 - **M** is a project. M holds a plan, M.p, and a prototype, M.f. M.p is the specification of
   M.f.
 - **S** is the development system. S builds, reviews and improves M. S also improves S's own
@@ -18,12 +21,12 @@ How a change is made, checked and recorded. The step holds for every project tha
 
 ## Roles
 
-A role is defined by its actions. The roles are the user (`user.md`), the decision maker
-(`decision-maker.md`), the run reviewer (`run-reviewer.md`), the planner (`planner.md`), the
-proposal reviewer (`proposal-reviewer.md`), the coder (`coder.md`) and the code reviewer
-(`code-reviewer.md`). Any role may be played by a person, an AI or a program. One role may be
-played by several players at once; for instance, an AI may play the user first and a person on
-top.
+A role is defined by its actions. The roles are the user (`user.md`), the developer
+(`developer.md`), the decision maker (`decision-maker.md`), the run reviewer (`run-reviewer.md`),
+the planner (`planner.md`), the proposal reviewer (`proposal-reviewer.md`), the coder (`coder.md`)
+and the code reviewer (`code-reviewer.md`). Any role may be played by a person, an AI or a program.
+One role may be played by several players at once; for instance, an AI may play the developer first
+and the person who develops M on top (Developer mode).
 
 No role reviews an artifact it wrote. (ITIL's standard change; DORA on change approval.)
 
@@ -82,9 +85,9 @@ tests says so (step 7).
 A step follows the DevOps loop (plan, code, build, test, release, deploy, operate, monitor),
 entered at monitor, because S's proposals come from what the runs show.
 
-Runs come from several drivers: CI/CD tests, developers running M.f on purpose, real users, and
-the user role. Tests decide right or wrong, and so yield scores automatically. The user role
-gives continuous grades, sometimes without running the program at all (τ-bench; Anthropic's
+Runs come from several drivers: CI/CD tests, developers running a candidate on purpose, real
+users, and the user role. Tests decide right or wrong, and so yield scores automatically. The user
+role gives continuous grades, sometimes without running the program at all (τ-bench; Anthropic's
 agent-eval guide). Runs before or after a release are not guaranteed: the loop works with
 whatever runs exist, and with none.
 
@@ -103,15 +106,15 @@ whatever runs exist, and with none.
    revises the proposals: a propose-review loop. The loop ends when further review can no
    longer materially change the top proposals. (Rust RFCs, Google design docs, KEPs with
    reviewers distinct from authors, PEP 1, Amazon's Type 1 and Type 2 decisions.)
-4. **Plan: decide.** The reviewed proposals reach the user and the decision maker. The user
-   reviews them and gives feedback and numerical corrections. The feedback and corrections send
-   the proposals back to the planner at step 2: a propose-review-decide loop. To end the loop,
+4. **Plan: decide.** The reviewed proposals reach the developer and the decision maker. The
+   developer reviews them and gives feedback and numerical corrections. The feedback and corrections
+   send the proposals back to the planner at step 2: a propose-review-decide loop. To end the loop,
    the decision maker approves some proposals as change requests for step 5. The feedback,
    corrections and decisions are kept as data. (Rust, PEP 1, HashiCorp RFCs.)
 5. **Code, build and test.** The coder writes the change requests on a branch, in order. Each
    change request passes its gates, the checks of its kind, or is abandoned. Changes that pass
    join a merge queue. A change that fails drops out, and the coder logs the reason. When the
-   user runs the candidate v+1 and the current v side by side on the same use cases, code
+   developer runs the candidate v+1 and the current v side by side on the same use cases, code
    scores the difference on metrics fixed before the run. (GitHub required checks and merge
    queue; Software Engineering at Google; Google SRE canarying; Spinnaker Kayenta.)
 6. **Code review.** A gate before release. The code reviewer reviews the diff and either accepts
@@ -133,20 +136,20 @@ whatever runs exist, and with none.
         propose, with those findings alone, building on the version chosen in 1. When that work
         reaches step 7 again, the decision maker decides again.
       - When the decision maker picks up none, that one decision accepts every remaining open
-        finding as a known defect, and the version chosen in 1 is released to developers, with
+        finding as a known defect, and the version chosen in 1 is released to users, with
         those defects.
 
    (Software Engineering at Google; LLVM; feature toggles; DORA on change approval.)
 8. **Use case.** After the release, the user runs the version in use on a new use case, one
    different from the earlier ones. Open findings do not hold this back. Steps of S alternate in
    this way between the design and new use cases: a new use case shows parts the design must add,
-   parts it can remove, and existing parts it can use again. The new case is a seed the person gave
-   that no run has used yet. When there is none, the step stops and asks the person for one. The
+   parts it can remove, and existing parts it can use again. The new case is a seed a user gave
+   that no run has used yet. When there is none, the step stops and asks for one. The
    run records go to the next step 1.
 
 About releases:
-- A release goes to developers, and a released version is one that developers can run.
-- Developers, users, the user role or automated tests may run a released version at any time.
+- A release goes to users, and a released version is one that users can run.
+- Users, the user role, developers or automated tests may run a released version at any time.
   The run reviewer reads the records of those runs at the start of the next step of S.
 
 ## Runs inside a step
@@ -156,11 +159,11 @@ states that no use case covers yet, and runs the current version on each use cas
 run record of it. So a step that starts with no data, as the first step on a project developed
 by other means does, still gives the run reviewer runs to read.
 
-Inside the step, a step may include trial runs, and may include none. After the coder's step 5, a
-simulated developer (the user role) or the person makes one or more trial runs of the candidate
-v+1, side by side with v when both can run. A trial run logs more than a true run: the run sets
-`S_RUN_KIND=trial`, and M.f raises its logging when it sees it. Runs of a released version belong
-to the next step, which starts by running the version in use.
+Inside the step, a step may include trial runs, and may include none. After the coder's step 5, the
+developer makes one or more trial runs of the candidate v+1, side by side with v when both can run.
+A trial run logs more than a true run: the run sets `S_RUN_KIND=trial`, and M.f raises its logging
+when it sees it. Runs of a released version belong to the next step, which starts by running the
+version in use.
 
 Each run leaves a run record in `S/data/run-records/`, and the run reviewer reads it at the next
 step 1. A layer that has no way to run M.f yet leaves its run command empty, and its steps include
@@ -177,10 +180,10 @@ entries into the layer's `S/data/<type>/`, and the next role takes them from the
 | runs | user | run records, run grades | run reviewer |
 | 1. monitor | run reviewer | run reviews | planner |
 | 2. propose | planner | proposals | proposal reviewer |
-| 3. review | proposal reviewer | proposal reviews | planner, until the loop ends; then the user |
-| 4. decide | user, then decision maker | proposal reviews, then decisions | coder |
-| 5. code | coder | the change, and its gates' results in the step's log | the user, for trial runs, or the code reviewer |
-| trial runs | user | run records, run grades | code reviewer |
+| 3. review | proposal reviewer | proposal reviews | planner, until the loop ends; then the developer |
+| 4. decide | developer, then decision maker | proposal reviews, then decisions | coder |
+| 5. code | coder | the change, and its gates' results in the step's log | the developer, for trial runs, or the code reviewer |
+| trial runs | developer | run records, run grades | code reviewer |
 | 6. code review | code reviewer | code reviews | decision maker |
 | 7. release | decision maker | a release decision | coder |
 | merge | coder | the merge, in the step's log | decision maker |
@@ -194,8 +197,8 @@ cost of the runs and monitor alone.
 
 ## Developer mode
 
-The person who develops the project is S's developer, and works with S step by step, the way the
-Director works with f round by round. At the end of each of S's steps that the developer is
+The person who develops the project plays the developer, and works with S step by step, the way
+a user works with M.f round by round. At the end of each of S's steps that the developer is
 consulted on, S shows the step's work in the developer's terms: the findings with their evidence;
 the proposals in order, with their gains, costs and checks and the reviewer's corrections; the
 decisions with their reasons; each change with its tests and trial runs; the code review; the
@@ -208,7 +211,7 @@ step's log, so they travel upward like any other entry.
 
 The developer is consulted at the end of each step listed in `chain.json`'s `consult`: by default
 steps 1, 3 (propose and review, shown together), 4, 5, 6, 7 and 8. The hand-offs that only record,
-the seed as a use case and the Director's runs, need no consultation. When a step no longer needs
+the user's seed as a use case and the user's runs, need no consultation. When a step no longer needs
 the developer, the developer takes it out of `consult`, and its work is shown with the next
 consulted step. (Interrupt and resume in human-in-the-loop agent frameworks, such as LangGraph;
 levels of automation, Sheridan and Verplank, and Parasuraman, Sheridan and Wickens 2000.)

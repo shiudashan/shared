@@ -30,7 +30,7 @@ and when the reason serves projects beyond the project the decision came from.
 
 ## Approving change requests
 
-The reviewed proposals reach the decision maker with their reviews, the user's feedback and
+The reviewed proposals reach the decision maker with their reviews, the developer's feedback and
 corrections, and a summary of where the reviewers disagree. Feedback and corrections send
 proposals back to the planner: a propose-review-decide loop. The decision maker ends the loop by
 approving some proposals. Proposals not approved are postponed, stay in the backlog, and may be
@@ -40,14 +40,14 @@ decisions). (Rust, PEP 1, HashiCorp RFCs.)
 ## Releasing
 
 The decision maker releases v+1 or keeps v, with the code review in hand, and with the graded
-runs of the side-by-side comparison when there are any. The release goes to developers. A
+runs of the side-by-side comparison when there are any. The release goes to users. A
 release that proves worse is reverted, and a postmortem follows at once. (Software Engineering
 at Google; LLVM; feature toggles; DORA on change approval.)
 
 ## How the decision maker is checked
 
-Agreement with the person on held-out decisions, by Cohen's kappa, divided by the person's own
-consistency, as for the user (`user.md`).
+Agreement with the person who develops the project on held-out decisions, by Cohen's kappa,
+divided by that person's own consistency, as for the developer (`developer.md`).
 
 ## Sources
 

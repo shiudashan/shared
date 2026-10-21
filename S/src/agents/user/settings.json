@@ -6,10 +6,6 @@
   "reads": [
     "S/data/use-cases/",
     "S/data/run-records/",
-    "S/data/run-grades/",
-    "S/data/run-reviews/",
-    "S/data/proposals/",
-    "S/data/proposal-reviews/",
-    "S/data/decisions/"
+    "S/data/run-grades/"
   ]
 }

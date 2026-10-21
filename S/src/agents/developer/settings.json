@@ -1,0 +1,15 @@
+{
+  "role": "developer",
+  "spec": "S/specs/developer.md",
+  "model": "no preference",
+  "thinking": "off",
+  "reads": [
+    "S/data/use-cases/",
+    "S/data/run-records/",
+    "S/data/run-grades/",
+    "S/data/run-reviews/",
+    "S/data/proposals/",
+    "S/data/proposal-reviews/",
+    "S/data/decisions/"
+  ]
+}

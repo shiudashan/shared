@@ -14,6 +14,8 @@ Each role sends the type the role writes, and receives the same type at the laye
 - the run reviewer sends run reviews;
 - the planner sends proposals;
 - the proposal reviewer sends proposal reviews;
+- the developer sends nothing: its proposal reviews and trial-run grades judge this layer's
+  candidate, and serve no other layer;
 - the code reviewer sends code reviews;
 - the coder sends changes: a reusable program, with the program's tests and spec.
 

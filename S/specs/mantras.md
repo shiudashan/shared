@@ -44,7 +44,7 @@ bug's symptom better or worse for now.
 Existing code is often an earlier, intentionally simpler implementation. When it runs into an
 issue that was to be expected, rewrite it with a better, more thoughtful design, using the
 hindsight. Everything improves, with no trade-off except perhaps more code, which is accepted.
-This is not a design question for the person.
+This is not a design question for the developer.
 
 ## Move hard-coded parameters into configuration
 

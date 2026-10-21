@@ -149,7 +149,7 @@ while [ "$h" -lt "$N" ]; do
   writes=(); while IFS= read -r w; do writes+=("$w"); done < <(jq -r ".handoffs[$h].writes[]" "$CHAIN")
 
   # A hand-off whose needed types gained no entry since the last completed step has nothing to
-  # work on: none in this step, and none written between steps, such as the person's own.
+  # work on: none in this step, and none written between steps, such as the developer's own.
   needs=$(jq -r ".handoffs[$h].needs // [] | join(\" \")" "$CHAIN")
   if [ -n "$needs" ]; then
     got=""; for t in $needs; do

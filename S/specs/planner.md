@@ -56,14 +56,14 @@ keeps the quantities side by side, visible with the order, and orders the propos
 them together. The planner never folds them into a single ratio. What counts as an upside or a
 downside is left to the planner and the project. The order is redone every step.
 
-## How the planner learns from the person's data
+## How the planner learns from the developer's data
 
-The decisions and corrections of step 4 show how the person weighs gains, costs and risks. For
-a new round, the planner is shown the past proposals nearest to the current ones, each with its
-decision, corrections and reason, approved and turned down alike. A correction made again and
-again becomes a readable rule, kept beside the examples once it holds across several of the
-person's decisions. Agreement between the planner's order and the person's order is measured as
-the reviewers' agreement is (`run-reviewer.md`).
+The decisions and corrections of step 4 show how the developer weighs gains, costs and risks. For a
+new round, the planner is shown the past proposals nearest to the current ones, each with its
+decision, corrections and reason, approved and turned down alike. A correction made again and again
+becomes a readable rule, kept beside the examples once it holds across several of the developer's
+decisions. Agreement between the planner's order and the developer's order is measured as the
+reviewers' agreement is (`run-reviewer.md`).
 
 ## Sources
 

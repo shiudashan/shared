@@ -1,4 +1,4 @@
-# Puts where S's step stands beside each message the person sends, so the session running S
+# Puts where S's step stands beside each message the developer sends, so the session running S
 # works from S's own state, not from the chat. Run by the UserPromptSubmit hook in
 # .claude/settings.json, beside keep-message.py. It prints one short factual paragraph, which
 # Claude Code adds to what the model sees with the message; with no step in progress it prints

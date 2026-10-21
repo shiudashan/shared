@@ -50,11 +50,11 @@ checks). A check passes only because something was checked: a gate that passes b
 ran is not a pass. Fast and reliable checks run on the branch; larger end-to-end checks run on
 the merged candidate (Software Engineering at Google).
 
-## How the coder learns from the person's data
+## How the coder learns from the developer's data
 
 The coder learns through the reviews of its work. Each code review, and each finding that traces
 back to a change, names what it applied: a rule of the change's spec, a mantra or habit, or an
-example the person gave. The person's examples of each mantra are shown to the coder with the
+example the developer gave. The developer's examples of each mantra are shown to the coder with the
 change requests they bear on. A kind of review comment that recurs becomes a readable rule.
 
 ## Sources

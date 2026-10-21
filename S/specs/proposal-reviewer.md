@@ -43,7 +43,7 @@ in `S/specs/`, a finding, or a decision. The checks are consistency with M.p and
 and a check in the proposal that can decide it (Spec Kit's analyze; Google design review). Heavy
 review is kept for changes that are hard to undo (Amazon's Type 1 decisions).
 
-The proposal reviewer learns from the person's data on the path given in `run-reviewer.md`.
+The proposal reviewer learns from the developer's data on the path given in `run-reviewer.md`.
 
 ## Sources
 

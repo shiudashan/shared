@@ -16,7 +16,7 @@ puts that state beside every message the developer sends.
 |---|---|---|
 | 1 monitor | use-cases, runs, monitor | the findings |
 | 2–3 propose and review | propose, review (looped) | the proposals with the reviewer's corrections |
-| 4 decide | user-review, decide | what was approved, postponed or rejected |
+| 4 decide | developer-review, decide | what was approved, postponed or rejected |
 | 5 code | code, trial-runs | each change and its tests and trial runs |
 | 6 code review | code-review | the review's comments and outcome |
 | 7 release | release, merge, runs-after-release | released or kept, and the merge |

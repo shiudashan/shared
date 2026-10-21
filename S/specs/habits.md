@@ -11,7 +11,7 @@ departing from one is worth a sentence of reason.
    exactly its patches. Stop with a plain message if not.
 
 ## Checks and limits
-4. Check from where the thing is used: a page from the machine the person reads it on, a
+4. Check from where the thing is used: a page from the machine a person reads it on, a
    permission by an action that tries to cross it. A check that passes because nothing happened
    is not a pass.
 5. Every limit has an enforcer in the program. A limit that only logs, or only asks the model to
@@ -42,8 +42,8 @@ departing from one is worth a sentence of reason.
     did is kept or deliberately dropped.
 
 ## Data
-18. Keep every word the person gives, with what it was about, as data, written as it is given.
-    Never record words as the person's that the person did not give.
+18. Keep every word a user or the developer gives, with what it was about, as data, written as
+    it is given. Never record words as someone's that they did not give.
 
 ## Reproducibility
 19. Keep every version rebuildable and every run traceable to the version that made it. Pin what

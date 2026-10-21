@@ -31,11 +31,11 @@ cited lines alone, and when the rule serves programs beyond the program the revi
 
 A review is accept or request changes, with comments, each tied to lines of the diff. Each
 comment names the rule it applies: the change's spec, a mantra or habit (`mantras.md`,
-`habits.md`), or an example the person gave. A ready-made code-review agent, configured with
-the specs and the person's examples, may play the role (survey-ready-made-reviewers). (Google
+`habits.md`), or an example the developer gave. A ready-made code-review agent, configured with
+the specs and the developer's examples, may play the role (survey-ready-made-reviewers). (Google
 code review; GitHub's required review, approve or request changes.)
 
-The code reviewer learns from the person's data on the path given in `run-reviewer.md`.
+The code reviewer learns from the developer's data on the path given in `run-reviewer.md`.
 
 ## Sources
 

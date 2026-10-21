@@ -7,7 +7,7 @@ gives its format. Each entry is one JSON file, named by its `id`.
 
 - `id`: a short name, the file's name without `.json`.
 - `by`: who wrote the entry: a role and its player, such as `run-reviewer` played by a named
-  model, or the person.
+  model, or a person.
 - `status`: where the entry stands. The values for each type are given below.
 - `decided` (when the status was set by someone other than the author): who set it, and when.
 - `upstream` (optional): `local`; `candidate`, for an entry that could help an agent of any role
@@ -16,7 +16,7 @@ gives its format. Each entry is one JSON file, named by its `id`.
   pass (`upstream.md`).
 - `reason` (optional): the developer's words when the developer answered the step that wrote the
   entry (`step.md`, "Developer mode").
-- `earlier` (optional): an entry's text before the person edited it at a gate.
+- `earlier` (optional): an entry's text before the developer edited it at a gate.
 - `related` (optional, on a sent entry): the ids of the entries it rests on or answers, such as
   the proposal a decision decides.
 - `superseded_by` (on a retired entry): the id of the entry that replaced it. `retired` is a
@@ -28,8 +28,9 @@ gives its format. Each entry is one JSON file, named by its `id`.
 `S/outbox/<type>/` holds the entries this layer's roles send to the layer above, revised for
 the layer above (`upstream.md`). Git keeps the outbox.
 
-Words are recorded as given. Words someone else wrote and the person approved are recorded with
-their author in `by` and the person in `decided`. They are never recorded as the person's words.
+Words are recorded as given. Words someone else wrote and the developer approved are recorded with
+their author in `by` and the developer in `decided`. They are never recorded as the developer's
+words.
 
 ## The types
 
@@ -76,13 +77,14 @@ A role's actions are listed in the role's spec. An x marks a type the action rea
 
 | Role | Action | Use cases | Run records | Run grades | Run reviews | Proposals | Proposal reviews | Decisions | Code reviews |
 |---|---|---|---|---|---|---|---|---|---|
-| User | run M.f side by side, v and v+1 (step 5) | x | | | | | | | |
-| User | run M.f after a release | x | | | | | | | |
+| User | run M.f after a release (step 8) | x | | | | | | | |
 | User | grade a run | x | x | x | | | | | |
-| User | review proposals (step 4) | | | | x | x | x | x | |
-| User | give feedback and corrections (step 4) | | | | | x | x | x | |
 | User | send use cases and run grades upward | x | | x | | | | | |
 | User | receive use cases and run grades from below | x | | x | | | | | |
+| Developer | review proposals (step 4) | | | | x | x | x | x | |
+| Developer | give feedback and corrections (step 4) | | | | | x | x | x | |
+| Developer | run M.f side by side, v and v+1 (step 5) | x | | | | | | | |
+| Developer | grade a trial run (step 5) | x | x | x | | | | | |
 | Decision maker | approve change requests (step 4) | | | | x | x | x | x | |
 | Decision maker | release v+1 or keep v (step 7) | x | x | x | | | | x | x |
 | Decision maker | send decisions upward | | | | | | | x | |

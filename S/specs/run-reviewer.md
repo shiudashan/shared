@@ -36,11 +36,11 @@ in another program.
 Each finding names:
 - the symptom it rests on, in a run record or a code review;
 - the reference it is judged against, where one exists: a use case's reference answer or
-  rubric, an earlier run review the person approved, a test, or a gate;
+  rubric, an earlier run review the developer approved, a test, or a gate;
 - its severity;
 - what it is about: the run as a whole, or one part of the output by id.
 
-**Grounding.** A judgement of the person's kind rests on a reference: an earlier run review
+**Grounding.** A judgement of the developer's kind rests on a reference: an earlier run review
 applies when the run shows the same fault through the same kind of fact, at the same size or
 worse. A failed test or gate, and a code review, ground themselves. No ground, no finding. Most
 runs give few findings, and none is a whole answer.
@@ -48,36 +48,36 @@ runs give few findings, and none is a whole answer.
 The run reviewer reads the run's facts as the program computes them, and the log lines they rest
 on, each labelled with its kind of fact. It does not search raw traces for faults (TRAIL).
 
-## How the run reviewer learns from the person's data
+## How the run reviewer learns from the developer's data
 
 The run reviewer, the proposal reviewer and the code reviewer follow one path, in the order the
 evidence supports (survey-simulated-reviewer).
 
-1. **Measure first.** Hold out items. Score the reviewer by Cohen's kappa against the person,
-   not by percent agreement. Re-ask the person 20 to 30 old items blind, weeks later, to get the
-   person's own consistency, the ceiling. Published simulators of individuals reach 85% to 88%
+1. **Measure first.** Hold out items. Score the reviewer by Cohen's kappa against the developer,
+   not by percent agreement. Re-ask the developer 20 to 30 old items blind, weeks later, to get the
+   developer's own consistency, the ceiling. Published simulators of individuals reach 85% to 88%
    of that ceiling.
-2. **A few dozen items: show them all, with the person's reasons.** When the examples fit in
-   context, all of them go in. They are not sorted by label. Each carries the person's short
+2. **A few dozen items: show them all, with the developer's reasons.** When the examples fit in
+   context, all of them go in. They are not sorted by label. Each carries the developer's short
    reason. Rejected items stay, marked as rejected.
 3. **Decide only when sure.** Run the reviewer several times with different subsets of the
    examples; their agreement is the confidence. Below a threshold set on held-out items, the
-   reviewer stays silent or hands the item to the person. Start with high precision.
+   reviewer stays silent or hands the item to the developer. Start with high precision.
 4. **30 to 100 items: distil readable rules,** kept beside the examples. A rule is kept only if
-   it raises held-out agreement or holds across several of the person's items. Free-text
+   it raises held-out agreement or holds across several of the developer's items. Free-text
    critiques are grouped into named kinds of fault, each with a definition and examples
    (AutoLibra), and the items no kind explains are listed.
-5. **Choose what to ask the person next** by coverage and disagreement: the items the reviewer
+5. **Choose what to ask the developer next** by coverage and disagreement: the items the reviewer
    escalates, plus a few random items to keep the agreement number honest.
-6. **50 to 300 items: optimise the prompt offline** on the person's labels, with train and
+6. **50 to 300 items: optimise the prompt offline** on the developer's labels, with train and
    held-out split by time (GEPA, MIPROv2).
 7. **Hundreds of items, and only if the steps above plateau below the ceiling:** a LoRA on a
    smaller judge, with old examples replayed.
 8. **Throughout: keep the examples current.** Retire superseded items explicitly, weight recent
    items more, and recalibrate the threshold on the newest items.
 
-The person's approvals and rejections of each review feed back as new entries. A kind of comment
-the person keeps turning down is switched off (Google AutoCommenter).
+The developer's approvals and rejections of each review feed back as new entries. A kind of comment
+the developer keeps turning down is switched off (Google AutoCommenter).
 
 ## Sources
 
