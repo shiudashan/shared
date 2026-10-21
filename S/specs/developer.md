@@ -17,10 +17,11 @@ Each action names the data types it reads (`data.md`) and what it writes.
   Writes proposal reviews.
 - **Give feedback and corrections (step 4).** Reads proposals, proposal reviews and decisions.
   Writes proposal reviews: textual feedback and numerical corrections, each with its reason.
-- **Run M.f side by side, v and v+1 (step 5).** Reads use cases. Runs the current v and the
-  candidate v+1 on the same use cases, with `S_RUN_KIND=trial`. Writes run records.
-- **Grade a trial run (step 5).** Reads use cases, run records and run grades. Writes a run grade
-  with its reason, by the method in `user.md`, "Grading".
+- **Run M.f side by side, v and v+1 (step 5).** Reads run records and their logs. Runs the
+  current v and the candidate v+1 on the same inputs, such as what the logs show users doing, with
+  `S_RUN_KIND=trial`. Writes run records.
+- **Grade a trial run (step 5).** Reads run records and their logs, and run grades. Writes a run
+  grade with its reason, by the method in `user.md`, "Grading".
 
 ## How the developer is checked
 

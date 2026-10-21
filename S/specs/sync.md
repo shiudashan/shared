@@ -35,11 +35,11 @@ customisations.
       `S/src/agents/global.md`, and the customisation does not repeat them. The customisation names no single
       prototype or generation; the project's own sync adds what is specific to a generation
       when the project syncs a generation. When `record.sh` arrives, one `claude -p` step sets up
-      recording: it names in `chain.json` the folder of users' seeds and the folder of users' own
-      runs, and marks with `{seed}` where the run command takes the seed. When a user's run holds
-      more than `record.sh` records, such as the user's words in each round, the step writes the
-      layer's own recording program, `S/src/record-runs.sh`, which calls no model. A model spent
-      once at sync replaces a model spent at every step.
+      recording: it names in `chain.json` the folder where the program's logs land, and the
+      command, if any, that uses the program once more. When the project has a use for more than
+      `record.sh` records, the step writes the layer's own program that draws it out of the logs,
+      and names it in `extract`; that program calls no model. A model spent once at sync replaces
+      a model spent at every step.
    5. **Report.** Sync lists what it added, updated, merged and removed, and every conflict.
       The project reviews the changes, customises them, and commits them.
 

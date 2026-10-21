@@ -4,7 +4,7 @@ How a change is made, checked and recorded. The step holds for every project tha
 
 ## Terms
 
-- **The user** takes a released version of M.f and uses it: gives it seeds, answers its
+- **The user** takes a released version of M.f and uses it: gives it its inputs, answers its
   questions, gives feedback during a run, and grades runs. A grade with its reason is how the
   user reports a bug.
 - **The developer** develops M through S: ranks the bugs, features and refactors, reviews the
@@ -17,7 +17,9 @@ How a change is made, checked and recorded. The step holds for every project tha
 - **A generation** is a major iteration of M, such as the fifth rebuild of a prototype. A
   generation n has versions n.0, n.1, and so on (`versioning.md`).
 - **A version** v is one state of M.p and M.f. A step of S moves M from v to v+1.
-- **A run** is one execution of M.f on one use case. Each run leaves a run record.
+- **A run** is one use of M.f. Each run leaves logs, and a program makes a run record from them.
+  Logs are S's one general input. Anything more specific, such as a use case, is drawn from the
+  logs by the project, when the project has a use for it.
 
 ## Roles
 
@@ -66,10 +68,10 @@ the proposal before the run.
   breaking. (OpenTelemetry.)
 - **A prompt change:** a case counts as passing on v only if the case passed in all k trials,
   with k set in the proposal, and every such case passes on v+1. Versions are compared by
-  paired differences on the same use cases. (Anthropic's eval guidance; the exact pass rule is
+  paired differences on the same inputs. (Anthropic's eval guidance; the exact pass rule is
   ours.)
 - **A change using an alternative path** adds three checks to its kind's own. With the switch
-  off, nothing changes. Both paths run on the same use cases, with success and failure conditions
+  off, nothing changes. Both paths run on the same inputs, with success and failure conditions
   written before the run. The removal of the losing path is planned, with a date.
 
 Each check is written in the proposal as gates. A gate is a command when a program can do the
@@ -127,7 +129,7 @@ whatever runs exist, and with none.
    change request passes its gates, the checks of its kind, as the program decides them from the
    gate records, or is abandoned. Changes that pass
    join a merge queue. A change that fails drops out, and the coder logs the reason. When the
-   developer runs the candidate v+1 and the current v side by side on the same use cases, code
+   developer runs the candidate v+1 and the current v side by side on the same inputs, code
    scores the difference on metrics fixed before the run. (GitHub required checks and merge
    queue; Software Engineering at Google; Google SRE canarying; Spinnaker Kayenta.)
 6. **Code review.** A gate before release. The code reviewer reviews the diff and either accepts
@@ -154,12 +156,11 @@ whatever runs exist, and with none.
         those defects.
 
    (Software Engineering at Google; LLVM; feature toggles; DORA on change approval.)
-8. **Use case.** After the release, a program runs the version in use on a new use case, one
-   different from the earlier ones, and the user grades the run. Open findings do not hold this
-   back. Steps of S alternate in this way between the design and new use cases: a new use case shows
-   parts the design must add, parts it can remove, and existing parts it can use again. The new case
-   is a seed a user gave that no run has used yet. When there is none, the step stops and asks for
-   one. The run records go to the next step 1.
+8. **New use.** After the release, users use the version in use, and their new logs come back. A
+   program records each new run from the logs, and the user grades it. Open findings do not hold
+   this back. Steps of S alternate in this way between the design and new use: new use shows parts
+   the design must add, parts it can remove, and existing parts it can use again. When no new logs
+   have come, the step stops and waits for them. The run records go to the next step 1.
 
 About releases:
 - A release goes to users, and a released version is one that users can run.
@@ -168,11 +169,12 @@ About releases:
 
 ## Runs inside a step
 
-A step starts with the use cases it can run. A program records each seed a user gave as a use
-case, word for word, and runs the current version on each use case that has no run record of it;
-the user grades the runs. A use case holds the seed alone: no reference answer and no rubric,
-unless one is written for it later. The program also records the runs users made themselves. So a
-step that starts with seeds and no other data, as the first step on a project developed by other
+A step starts from the logs. A program records each run the logs show that has no run record
+yet, and the user grades the runs. When the project can use M.f once more by a command, such as a
+replay of what the logs show, the program also runs that command once on the current version, and
+records the run from the logs it leaves, or from its output when it leaves none. When the project
+draws more out of the logs, such as use cases, its own program does so after the recording. So a
+step that starts with logs and no other data, as the first step on a project developed by other
 means does, still gives the run reviewer runs to read.
 
 Inside the step, a step may include trial runs, and may include none. After the coder's step 5, the
@@ -181,9 +183,9 @@ A trial run logs more than a true run: the run sets `S_RUN_KIND=trial`, and M.f 
 when it sees it. Runs of a released version belong to the next step, which starts by running the
 version in use.
 
-Each run leaves a run record in `S/data/run-records/`, and the run reviewer reads it at the next
-step 1. A layer that has no way to run M.f yet leaves its run command empty, and its steps include
-no runs.
+Each run has a run record in `S/data/run-records/`, and the run reviewer reads it at the next
+step 1. A layer that has no way to run M.f by a command leaves its run command empty, and works from
+the logs users leave.
 
 ## Triggering and chaining
 
@@ -191,16 +193,15 @@ A chain is the order of the step's hand-offs. At each hand-off, the role that fi
 entries in its reply, a program writes them into the layer's `S/data/<type>/`, and the next role
 takes them from there.
 
-Programs record; models judge. Copying a seed, running the run command, saving an entry, filling in
-who wrote it, and writing the outbox need no judgement, so a program does them, in seconds, word for
-word. A hand-off that only records names a program instead of a role: `S/src/record.sh` records the
-seeds as use cases and makes and records the runs, with no model. A model is called only for what
+Programs record; models judge. Collecting logs, running the run command, saving an entry, filling in
+who wrote it, and writing the outbox need no judgement, so a program does them, in seconds, as they
+are. A hand-off that only records names a program instead of a role: `S/src/record.sh` records each
+new run from the logs and makes the layer's own run, with no model. A model is called only for what
 needs judgement: grades, findings, proposals, reviews, decisions, code.
 
 | Step | Role | Writes | Next |
 |---|---|---|---|
-| use cases | program | use cases, from users' seeds | the program, for runs |
-| runs | program | run records | the user, for grades |
+| runs | program | run records, from the logs | the user, for grades |
 | grades | user | run grades | run reviewer |
 | 1. monitor | run reviewer | run reviews | planner |
 | 2. propose | planner | proposals | proposal reviewer |
@@ -212,8 +213,8 @@ needs judgement: grades, findings, proposals, reviews, decisions, code.
 | 7. release | decision maker | a release decision | coder |
 | merge | coder | the merge, in the step's log | decision maker |
 | pick up | decision maker | the findings picked up, or none | the planner, with those findings, or the user |
-| 8. use case | program | a use case, a run record | the user, for the grade |
-| grade | user | a run grade | the step's end |
+| 8. new use | program | run records, from users' new logs | the user, for grades |
+| grades | user | run grades | the step's end |
 
 A hand-off may name the types it needs. `step.sh` skips the hand-off when none of those types
 gained an entry earlier in the same step: the planner proposes only from new findings, and the
@@ -254,10 +255,11 @@ role shares, such as how RSI differs from the maintenance of a live website. The
 prompt alone, not in the role prompts (`habits.md`, one rule per decision).
 
 `S/src/chain.json` holds the layer's chain: each hand-off, its role or its program, what it writes,
-how the hand-off starts, how many rounds the propose-review loop may take, the layer's run command
-(`{seed}` marks where the seed goes), the folder of seeds users give (`seeds`), the folder of runs
-users make (`user_runs`), and the leg to the layer above. A program hand-off that must wait for a
-person, such as step 8 with no new seed, stops the step and says what it needs. `S/src/step.sh
+how the hand-off starts, how many rounds the propose-review loop may take, the folder where M.f's
+logs land (`logs`, each item in it one run), the layer's run command, the layer's own program that
+draws more out of the logs (`extract`), and the leg to the layer above. Each of the last three may
+be empty. A program hand-off that must wait for a person, such as step 8 with no new logs, stops
+the step and says what it needs. `S/src/step.sh
 <layer root>` plays the chain. It gives each role its prompt, its settings and the step so far,
 records each hand-off in the step's log `S/steps/<step id>/`, and stops at the end of each consulted
 step. `step.sh <layer root> --from <hand-off>` resumes there. When a role returns an entry tagged
@@ -292,7 +294,7 @@ appears.
 Each run record holds:
 - the versions of M and S;
 - the settings;
-- the use case;
+- the logs it rests on, and the use case when the project drew one from them;
 - the trace: every model call and tool call the run made, each with its start, end, inputs and
   outputs, nested under the call that started it (OpenTelemetry's spans);
 - the outcome;

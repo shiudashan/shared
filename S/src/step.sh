@@ -239,7 +239,7 @@ while [ "$h" -lt "$N" ]; do
   reply="$LOG/$(printf '%02d' "$h")-$name-$round.reply"
 
   # A hand-off that only records is played by a program, with no model. Exit 3: the program
-  # waits for a person, such as step 8 for a new use case.
+  # waits for a person, such as step 8 for new logs from users.
   if [ -n "$program" ]; then
     record "$name" "starts" "the program $program"
     set +e; (cd "$P" && S_LAYER="$P" S_STEP_LOG="$LOG" S_RUN_KIND="${RUN_KIND:-}" bash -c "$program") > "$reply" 2>&1; code=$?; set -e

@@ -250,17 +250,16 @@ a stranger needs: what the project is, and what its own terms mean. Set \"leg\" 
 leg to the layer above. Set \"run_command\" to the command that runs the project's program on one \
 use case, if the project has one, or leave it empty. Leave the hand-offs as they are." || true
 fi
-# Recording is a program's job (S/specs/step.md, "Triggering and chaining"). A layer whose users'
-# runs hold more than files gets its own recorder once, here, rather than a model at every step.
-new_here "S/src/record.sh" && ask "set up recording" "S/src/record.sh records seeds and runs \
-with no model (S/specs/step.md, \"Triggering and chaining\"). In S/src/chain.json, set \"seeds\" \
-to the folder, from this folder, where users' seeds for this layer's program are kept (each item one \
-seed), \"user_runs\" to the folder where users' own runs are kept (each subfolder one run), or \
-leave either empty when there is none, and write {seed} in \"run_command\" where the seed goes. \
-When a user's run holds more than S/src/record.sh records, such as the words the user gave in each \
-round, write S/src/record-runs.sh, a program that first runs S/src/record.sh . runs and then adds \
-those words to each run record word for word (S/specs/data.md, run records), and set the \
-\"program\" of the \"runs\" hand-off to it. It must call no model. Leave everything else as it is." || true
+# Recording is a program's job (S/specs/step.md, "Triggering and chaining"). A layer that draws more
+# out of its logs gets its own program for it once, here, rather than a model at every step.
+new_here "S/src/record.sh" && ask "set up recording" "S/src/record.sh records each run from the \
+program's logs, with no model (S/specs/step.md, \"Triggering and chaining\"). In S/src/chain.json, \
+set \"logs\" to the folder, from this folder, where the program's logs land (each item in it one \
+run), and \"run_command\" to a command that uses the program once more, such as a replay of what \
+the logs show, or leave either empty when there is none. When the project has a use for more than \
+S/src/record.sh records (S/specs/data.md, run records and use cases), write a program that draws it \
+out of the logs into S/data/, and set \"extract\" to it. It must call no model. Leave everything \
+else as it is." || true
 
 for f in "$P/$AGENTS_DIR"/*/settings.json "$P/S/src/chain.json"; do
   [ ! -e "$f" ] || jq -e . "$f" >/dev/null 2>&1 || KEPT+=("${f#"$P/"} (not valid JSON; fix it)")

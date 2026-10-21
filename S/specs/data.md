@@ -37,21 +37,19 @@ words.
 
 ## The types
 
-- **Use cases.** One use case of M.f: `seed`, the input a run starts from, as a path in the
-  layer; `seedtext`, the seed's text, word for word; and, only when someone writes them,
-  `reference`, the reference answer, and `rubric`, a list of weighted checks, each `{"check",
-  "weight"}`. The program records each seed a user gave as a use case, and retires a use case
-  whose seed is gone. Status: `active` or `retired`.
-- **Run records.** One run: `versions`, of M and of S; `settings`; `use_case`, the id of the use
-  case; `trace`, every model call and tool call the run made, each with its start, end, inputs
-  and outputs, nested under the call that started it, as OpenTelemetry spans; `outcome`;
-  `grades`, the ids of the run grades given to the run; `cost`, with time, tokens and money.
-  Status: `complete` or `abandoned`. (MLflow runs, OpenTelemetry's GenAI agent spans, SLSA
-  provenance, and Anthropic's split between transcript and outcome.) The program writes the record
-  of each run it makes: the trace holds the command, the seed, the path of the saved output, the
-  start and end times and the exit code. A run a user made is recorded by `run`, the path of its
-  folder, and `files`, what the folder holds; a layer whose runs hold more, such as a user's words
-  in each round, records them with its own program.
+- **Use cases.** Optional. What a project draws out of its logs when it has a use for it: `input`,
+  what a run was given; and, only when someone writes them, `reference`, the reference answer,
+  and `rubric`, a list of weighted checks, each `{"check", "weight"}`. S needs none: every role
+  works from the logs when there are no use cases. Status: `active` or `retired`.
+- **Run records.** One run, as its logs show it: `logs`, the path of the run's logs; `files`, what
+  they hold, with sizes and times; `start` and `end`; `grades`, the ids of the run grades given to
+  the run. `S/src/record.sh` writes each record from the logs, with no model. A run S made with
+  the layer's run command adds `run_by_s`: the version, the command, the run kind, the path of the
+  command's output, the start and end times and the exit code. A project may add what its own
+  logs show, such as `versions`, `use_case`, `trace` (every model call and tool call, nested as
+  OpenTelemetry spans), `outcome` and `cost`, with its own program. Status: `complete` or
+  `abandoned`. (MLflow runs, OpenTelemetry's GenAI agent spans, SLSA provenance, and Anthropic's
+  split between transcript and outcome.)
 - **Run grades.** One grade of one run: `run`; `grade`, a number on a better-to-worse scale
   from 0 (worst) to 1 (best); `reason`; `grader`, recorded in `by`. Status: `given`,
   `approved` or `rejected`.
@@ -93,7 +91,7 @@ A role's actions are listed in the role's spec. An x marks a type the action rea
 
 | Role | Action | Use cases | Run records | Run grades | Run reviews | Proposals | Proposal reviews | Decisions | Code reviews |
 |---|---|---|---|---|---|---|---|---|---|
-| Program | record seeds and runs (steps 1 and 8) | x | x | | | | | | |
+| Program | record runs from the logs (steps 1 and 8) | | x | | | | | | |
 | User | grade a run | x | x | x | | | | | |
 | User | send use cases and run grades upward | x | | x | | | | | |
 | User | receive use cases and run grades from below | x | | x | | | | | |

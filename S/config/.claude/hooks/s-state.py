@@ -37,7 +37,7 @@ def gist(path):
         e = json.load(open(os.path.join(layer_root, path), encoding="utf-8"))
     except Exception:
         return path
-    for k in ("finding", "gain", "decision", "text", "outcome", "reason", "seedtext"):
+    for k in ("finding", "gain", "decision", "text", "outcome", "reason", "input"):
         if isinstance(e.get(k), str) and e[k].strip():
             return f'{e.get("id", path)}: {e[k].strip()[:160]}'
     return str(e.get("id", path))

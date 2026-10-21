@@ -6,11 +6,10 @@ different from the maintenance of a live website. A live website closes each hol
 now. In RSI, the program grows, and each round makes it better.
 
 ## What to change
-1. Alternate design rounds and use-case rounds:
+1. Alternate design rounds and use rounds:
    - In a design round, change the most basic part of the design that the evidence points to.
-   - In a use-case round, run the program on a new use case that is different from the
-     earlier ones.
-2. Use each use case to find parts to add and parts to remove.
+   - In a use round, the program is used anew, unlike earlier use, and its new logs come back.
+2. Use each new use to find parts to add and parts to remove.
 3. For each part to add, look first in this program, then in open-source software. Use an
    existing part and customize it. Write a new part only when no existing part fits.
 4. Make each change in one general part of the design.
@@ -42,7 +41,7 @@ Use the simplest reasonable meaning and continue. Write down each choice. Ask fi
 a step that cannot be undone, or about security.
 
 ## End of round
-Write down what changed, what the use case taught, and what stays open.
+Write down what changed, what the new use taught, and what stays open.
 
 The mantras (`S/specs/mantras.md`) and the habits (`S/specs/habits.md`) also apply.
 
