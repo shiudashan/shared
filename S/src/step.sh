@@ -97,7 +97,70 @@ ask() {  # ask <hand-off index> <message file> <reply file>
   flags=(); while IFS= read -r f; do flags+=("$f"); done < <(jq -r "(.handoffs[$h].claude_flags // .claude_flags // [])[]" "$CHAIN")
   [ "$model" = "no preference" ] || flags+=(--model "$model")
   if [ "${STEP_NO_CLAUDE:-}" = 1 ]; then echo '{"skipped": "STEP_NO_CLAUDE=1"}' > "$3"; return 0; fi
-  (cd "$P" && S_RUN_KIND="${RUN_KIND:-}" claude -p "${flags[@]}" < "$2") > "$3"
+  (cd "$P" && S_RUN_KIND="${RUN_KIND:-}" S_STEP_LOG="$LOG" claude -p "${flags[@]}" < "$2") > "$3"
+}
+
+# Gates (step.md, "Changes, their kinds and their checks"). The program decides each command gate
+# from the records S/src/gate-run.sh wrote, and reruns nothing; the code reviewer judges the prompt
+# gates. Each verdict goes to the step's log and to $LOG/verdicts.jsonl; a change's latest verdict
+# counts.
+verdict() {  # verdict <hand-off> <change> <commit> <passed|failed> <reason>
+  jq -nc --arg c "$2" --arg m "$3" --arg v "$4" --arg r "$5" '{change: $c, commit: $m, verdict: $v, reason: $r}' >> "$LOG/verdicts.jsonl"
+  record "$1" "change $4" "$2${5:+: $5}"
+}
+check_gates() {  # check_gates <hand-off> <reply json>: each change the coder passed, by its records
+  local c id commit prop tree g gname cmd rec reason
+  while IFS= read -r c; do
+    [ -n "$c" ] || continue
+    id=$(jq -r .change <<< "$c"); commit=$(jq -r '.commit // ""' <<< "$c")
+    prop="$P/$DATA_DIR/proposals/$id.json"; reason=""
+    if [ ! -f "$prop" ]; then reason="no proposal $id"
+    elif [ "$(jq '[.gates[]?] | length' "$prop")" = 0 ]; then reason="no gate commands"
+    elif ! tree=$(git -C "$P" rev-parse --verify -q "$commit^{tree}"); then reason="no commit \"$commit\""
+    else
+      while IFS= read -r g; do
+        gname=$(jq -r .name <<< "$g"); cmd=$(jq -r .command <<< "$g")
+        rec=$(jq -c --arg c "$id" --arg g "$gname" 'select(.change == $c and .gate == $g)' "$LOG/gates.jsonl" 2>/dev/null | tail -1)
+        if [ -z "$rec" ]; then reason="gate \"$gname\" never run"
+        elif [ "$(jq -r .command <<< "$rec")" != "$cmd" ]; then reason="gate \"$gname\": command differs from the proposal"
+        elif [ "$(jq -r .tree <<< "$rec")" != "$tree" ] || [ "$(jq -r .clean <<< "$rec")" != true ]; then reason="gate \"$gname\" ran on other code"
+        elif [ "$(jq -r .exit <<< "$rec")" != 0 ]; then reason="gate \"$gname\": exit $(jq -r .exit <<< "$rec")"
+        fi
+        [ -z "$reason" ] || break
+      done < <(jq -c '.gates[] | select(.command)' "$prop")
+    fi
+    if [ -z "$reason" ]; then verdict "$1" "$id" "$commit" passed ""; else verdict "$1" "$id" "$commit" failed "$reason"; fi
+  done < <(jq -c '(.changes // [.]) | map(select(.change and .result == "passed"))[]' <<< "$2")
+}
+check_prompt_gates() {  # check_prompt_gates <hand-off> <new entries>: a passing verdict on each prompt gate
+  local line id commit prop gname review v
+  [ -s "$LOG/verdicts.jsonl" ] || return 0
+  while IFS= read -r line; do
+    id=$(jq -r .change <<< "$line"); commit=$(jq -r .commit <<< "$line")
+    prop="$P/$DATA_DIR/proposals/$id.json"
+    [ "$(jq '[.gates[]? | select(.prompt)] | length' "$prop" 2>/dev/null || echo 0)" != 0 ] || continue
+    review=""; for f in $2; do
+      case $f in */code-reviews/*) [ "$(jq -r '.change // ""' "$P/$f")" = "$id" ] && review="$P/$f" ;; esac
+    done
+    [ -n "$review" ] || { verdict "$1" "$id" "$commit" failed "no code review judged its prompt gates"; continue; }
+    while IFS= read -r gname; do
+      v=$(jq -r --arg g "$gname" '[.gates[]? | select(.name == $g)][0].verdict // "none"' "$review")
+      [ "$v" = pass ] || { verdict "$1" "$id" "$commit" failed "prompt gate \"$gname\": verdict $v"; continue 2; }
+    done < <(jq -r '.gates[] | select(.prompt) | .name' "$prop")
+    verdict "$1" "$id" "$commit" passed "prompt gates judged"
+  done < <(jq -c -s 'group_by(.change) | map(last) | map(select(.verdict == "passed" and .reason == ""))[]' "$LOG/verdicts.jsonl")
+}
+check_merge() {  # check_merge <hand-off>: no change whose latest verdict failed is in the step's branch
+  local id commit
+  [ -s "$LOG/verdicts.jsonl" ] && [ -n "$BRANCH" ] || return 0
+  while read -r id commit; do
+    [ -n "$id" ] || continue
+    if git -C "$P" merge-base --is-ancestor "$commit" "$BRANCH" 2>/dev/null; then
+      record "$1" "merge included a failed change" "$id ($commit)"
+      echo "step: the merge put $id ($commit), which failed its gates, into $BRANCH. Undo the merge, then resume with --from $1." >&2
+      return 1
+    fi
+  done < <(jq -r -s 'group_by(.change) | map(last) | map(select(.verdict == "failed"))[] | "\(.change) \(.commit)"' "$LOG/verdicts.jsonl")
 }
 
 send() {  # send <hand-off index> <entry file>: the role's sending agent revises one candidate
@@ -206,6 +269,9 @@ while [ "$h" -lt "$N" ]; do
   entries ${writes[@]+"${writes[@]}"} > "$TMP/after"
   new=$(comm -13 "$TMP/before" "$TMP/after" | cut -d' ' -f1 | sed "s|^$P/||" | sort -u | paste -sd ' ' -)
   record "$name" "done" "${new:-no new entries}"
+  [ "$(jq -r ".handoffs[$h].gates // false" "$CHAIN")" != true ] || check_gates "$name" "$json"
+  [ "$(jq -r ".handoffs[$h].prompt_gates // false" "$CHAIN")" != true ] || check_prompt_gates "$name" "$new"
+  if [ "$(jq -r ".handoffs[$h].merge_check // false" "$CHAIN")" = true ] && ! check_merge "$name"; then return 1; fi
   used=$(jq -r '(.used // []) | map(tostring) | join(" ")' <<< "$json" 2>/dev/null || true)
   [ -z "$used" ] || record "$name" "used" "$used"
 

@@ -44,6 +44,9 @@ Each proposal states:
 - **the design:** what then changes in the prompts or the code, each file named;
 - **the tasks:** the steps of the work, in order;
 - **the check:** the check of its kind, with every number written before the run;
+- **the gates:** the check as gates (`step.md`): a command that exits 0 only when the check
+  passes, wherever a program can do the check, and a prompt for a model only where one cannot.
+  When a command could do the check but none exists yet, writing it is one of the tasks;
 - **upsides and downsides,** quantified.
 
 A limit the proposal adds needs an enforcer in the program. A line in a prompt that only asks

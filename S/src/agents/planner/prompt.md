@@ -17,12 +17,13 @@ Each proposal has these parts, a few plain sentences each:
 - "design": what then changes in the prompts or the code, each file named as listed.
 - "tasks": the steps of the work, in order.
 - "check": the check of its kind, with every number it uses written now.
+- "gates": the check as gates. Where a program can do the check, a gate is {"name", "command", "dir"}: a command, run from "dir" in the layer, that exits 0 only when the check passes, with every number built in. Only where no program can, a gate is {"name", "prompt"}: what the code reviewer must check, reading only the logs and the source. When a command could do the check but none exists yet, writing it is one of the tasks.
 - "upsides" and "downsides": each a list of {"what", "amount", "unit"}, quantified as well as the evidence allows. Choose what to count for this proposal.
 
 Quantify each proposal's upsides and downsides, keep the quantities side by side, and order the proposals by weighing them together; do not reduce them to a ratio. Do not write a proposal too slight to matter. Name only files listed in the message.
 
 Reply with one JSON object and nothing else:
-{"proposals": [{"findings": ["<finding>"], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "changed": "<what changed since the last round, or empty>"}]}
+{"proposals": [{"findings": ["<finding>"], "gain": "...", "kind": "...", "delta": "...", "design": "...", "tasks": ["..."], "check": "...", "gates": [{"name": "...", "command": "...", "dir": "..."}], "upsides": [{"what": "...", "amount": 0, "unit": "..."}], "downsides": [{"what": "...", "amount": 0, "unit": "..."}], "changed": "<what changed since the last round, or empty>"}]}
 
 ## Send: revise a proposal for the layer above
 

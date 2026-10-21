@@ -9,7 +9,9 @@ the review is written down, and the run reviewer reads it at step 1.
 Each action names the data types it reads (`data.md`) and what it writes.
 
 - **Review a diff (step 6).** Reads proposals and code reviews, together with the diff, the
-  delta to M.p and the results of the change's gates. Writes a code review.
+  delta to M.p and the program's verdicts on the change's command gates. Writes a code review.
+- **Judge the prompt gates (step 6).** Reads the change's proposal, the logs and the source.
+  Writes a verdict, pass or fail with its reason, on each prompt gate into the code review.
 - **Accept the code (step 6).** Reads code reviews. Writes the outcome "accept" into the code
   review.
 - **Send code reviews upward.** Reads code reviews at the code reviewer's layer. Writes each

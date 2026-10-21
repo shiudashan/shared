@@ -56,7 +56,8 @@ words.
   write.
 - **Proposals.** One change proposal: `findings`, the run reviews it answers; `gain`; `delta`,
   what the change adds, modifies or removes in the spec; `kind`; `design`; `tasks`; `check`;
-  `upsides` and `downsides`, each a list of `{"what", "amount", "unit"}`, kept side by side;
+  `gates`, each `{"name", "command", "dir"}` for a check a program does, or `{"name", "prompt"}`
+  for one a model judges (`step.md`); `upsides` and `downsides`, each a list of `{"what", "amount", "unit"}`, kept side by side;
   `rank`, its place in the planner's order; `corrections`, the ids of the proposal reviews and
   decisions it received; `changed`, what changed since the last round. Status: `proposed`,
   `withdrawn`, `approved`, `postponed` or `done`.
@@ -68,8 +69,14 @@ words.
   `keep`; `about`, the ids of the proposals, or the versions v and v+1; `reason`. Status:
   `final` or `reverted`.
 - **Code reviews.** One review of one diff: `diff`, the commits reviewed; `change`, the id of the
-  proposal it implements; `comments`, each `{"lines", "text", "rule"}`; `outcome`, `accept` or
-  `request changes`. Status: `open` or `closed`.
+  proposal it implements; `comments`, each `{"lines", "text", "rule"}`; `gates`, a verdict on each prompt gate of the
+  change, each `{"name", "verdict", "reason"}` with `verdict` `pass` or `fail`; `outcome`, `accept`
+  or `request changes`. Status: `open` or `closed`.
+
+The step's gate records, `S/steps/<step id>/gates.jsonl`, are written by `S/src/gate-run.sh`, one
+line per run of a command gate: `change`, `gate`, `command`, `commit`, `tree`, `clean` (true when
+the work tree held nothing uncommitted outside S's own records), `exit`, `start`, `end`, and `output`, the path of the
+saved output. They are records of what ran, not entries.
 
 ## Which action reads which type
 

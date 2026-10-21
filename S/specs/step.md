@@ -72,6 +72,18 @@ the proposal before the run.
   off, nothing changes. Both paths run on the same use cases, with success and failure conditions
   written before the run. The removal of the losing path is planned, with a date.
 
+Each check is written in the proposal as gates. A gate is a command when a program can do the
+check: the command exits 0 only when the check passes, with every number of the check built in.
+When a program cannot do the check, the gate is a prompt: what a model must check, reading only
+the logs and the source. The coder runs each command gate through `S/src/gate-run.sh`, which runs
+it once and records the run: the command, the commit and its tree, whether the work tree was
+clean, and the exit code. After step 5 the program decides each command gate from those records
+alone, and reruns nothing: a gate passes when its latest record ran the proposal's command, on a
+clean tree holding the change's commit, and exited 0. The code reviewer judges each prompt gate at
+step 6, and the program checks that every prompt gate has a passing verdict. The program decides
+where it can, and a model decides only the rest. A change with no gates fails: a gate that passes
+because nothing ran is not a pass.
+
 A change may defer the tests of its check. In RSI the design changes often from step to step,
 so complete tests for a design that is about to change can be wasted work. The coder lists each
 deferred test, with a priority, in the step's reply and in the change's commit message. At the
@@ -112,7 +124,8 @@ whatever runs exist, and with none.
    the decision maker approves some proposals as change requests for step 5. The feedback,
    corrections and decisions are kept as data. (Rust, PEP 1, HashiCorp RFCs.)
 5. **Code, build and test.** The coder writes the change requests on a branch, in order. Each
-   change request passes its gates, the checks of its kind, or is abandoned. Changes that pass
+   change request passes its gates, the checks of its kind, as the program decides them from the
+   gate records, or is abandoned. Changes that pass
    join a merge queue. A change that fails drops out, and the coder logs the reason. When the
    developer runs the candidate v+1 and the current v side by side on the same use cases, code
    scores the difference on metrics fixed before the run. (GitHub required checks and merge
@@ -126,7 +139,8 @@ whatever runs exist, and with none.
       this step's changes, with the code review, the trial runs and the list of open deferred
       tests in hand. A release with open tests names them in the release decision.
       - When the decision maker chooses the new version, the coder adds this step's changes to
-        the branch the step started from.
+        the branch the step started from. A change that failed a gate is never added; the
+        program checks the branch after the merge and stops the step if one was.
       - When the decision maker keeps the version in use, the coder leaves this step's changes
         on their own branches and adds nothing.
       - When a released version later proves worse than the one before it, the decision maker

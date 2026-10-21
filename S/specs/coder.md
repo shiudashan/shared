@@ -14,8 +14,9 @@ Each action names the data types it reads (`data.md`) and what it writes.
   releases v+1, the coder merges each passed change branch into the branch the step started on,
   keeps each change's tag, and checks that branch out. When the decision maker keeps v, the coder
   checks out the branch the step started on and leaves the change branches unmerged.
-- **Pass each change request's gates (step 5).** Reads use cases and run records. Runs the
-  checks of the change's kind and records their results.
+- **Pass each change request's gates (step 5).** Reads use cases, run records and the change's
+  proposal. Commits the change, then runs each command gate through `S/src/gate-run.sh`, which
+  records the run.
 - **Send a reusable program upward.** Reads the programs the coder wrote at the coder's layer,
   such as a script or a tool another layer can run. Writes each revised change, with the
   program's files, tests and spec, into `S/outbox/changes/`.
@@ -45,9 +46,12 @@ When a generation is a rebuild, the coder reads the previous generation's code a
 
 ## Gates
 
-The gates are the checks of each change's kind (`step.md`, Changes, their kinds and their
-checks). A check passes only because something was checked: a gate that passes because nothing
-ran is not a pass. Fast and reliable checks run on the branch; larger end-to-end checks run on
+The gates are the checks of each change's kind, written as gates in the proposal (`step.md`,
+Changes, their kinds and their checks). A check passes only because something was checked: a
+gate that passes because nothing ran is not a pass. The coder runs each command gate with
+`S/src/gate-run.sh <layer root> <change> <gate>`, on the committed change with a clean work tree.
+The program decides each command gate from those records, not from the coder's reply; the code
+reviewer judges the prompt gates. Fast and reliable checks run on the branch; larger end-to-end checks run on
 the merged candidate (Software Engineering at Google).
 
 ## How the coder learns from the developer's data

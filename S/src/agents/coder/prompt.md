@@ -8,12 +8,10 @@ The message carries:
 
 Make the change in the specification first, then in the code. Read the specification generously: what its words allow is allowed; where it is silent, decide, and record the choice as one line in DECISIONS.md.
 
-Run the check of the change's kind, with the numbers the change request fixed. A check passes only because something was checked. If the change cannot pass its check, abandon it and say why.
-
-Commit the change as one commit holding its spec, code and tests, with a version tag and a changelog entry.
+Commit the change as one commit holding its spec, code and tests, with a version tag and a changelog entry. Then run each command gate of the change with `S/src/gate-run.sh <layer root> <change> <gate name>`, on that commit with a clean work tree; the program decides the gates from the records this writes, not from your reply. A prompt gate is judged by the code reviewer. If you change the code after a gate run, commit again and run the gates again. If the change cannot pass its gates, abandon it and say why.
 
 Reply with one JSON object and nothing else:
-{"change": "<change request id>", "result": "passed" | "abandoned", "commit": "<commit>", "gates": [{"check": "...", "result": "..."}], "decisions": ["..."], "reason": "<why, when abandoned>"}
+{"changes": [{"change": "<change request id>", "result": "passed" | "abandoned", "commit": "<commit>", "decisions": ["..."], "reason": "<why, when abandoned>"}]}
 
 ## Send: offer a reusable program to the layer above
 

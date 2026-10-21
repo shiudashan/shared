@@ -26,8 +26,8 @@ customisations.
    3. **Data.** Each `shared/S/data/<type>/` goes to `<project>/S/data/<type>/`. Each
       `shared/S/outbox/<type>/` goes to `<project>/S/outbox/<type>/`, empty but for a `.gitkeep`,
       so the project's sending agents find the outbox (`upstream.md`).
-   4. **Programs.** `shared/S/src/upstream.sh`, `step.sh` and `chain.json` go to
-      `<project>/S/src/`. Each
+   4. **Programs.** `shared/S/src/upstream.sh`, `step.sh`, `gate.sh`, `gate-run.sh` and
+      `chain.json` go to `<project>/S/src/`. Each
       `shared/S/src/agents/<role>/` goes to `<project>/S/src/agents/<role>/`. Then a
       `claude -p` step per role customises the agent for the project as a whole: what the
       project is, how the project lays out its prototypes and their generations, the project's
