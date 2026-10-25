@@ -44,6 +44,20 @@ layer then applies each accepted change and runs the change's tests.
 
 When a generation is a rebuild, the coder reads the previous generation's code as hindsight.
 
+## The coding agent
+
+The coder is S directing a coding agent. S does not change the codebase itself. For each change
+request, S hands a coding agent, such as Claude Code, Codex, OpenCode or aider, the change
+request: its proposal, its decision, its gates, the code reviews it answers, and the branch to
+work on. The coding agent changes M.p and M.f on that branch, commits, runs the command gates
+through `S/src/gate-run.sh`, and replies with what it changed, its commits and its deferred
+tests. S judges the reply against the change request, and sends the coding agent back with what
+is missing. The gates are decided from their records, not from the reply (Gates).
+
+The interface is the same for every coding agent. Which coding agent a layer uses, and its
+settings, are configuration in the coder's `settings.json`. The coding agent is a tool S calls:
+it plays no role of S, and it is never the session S talks with the developer in.
+
 ## Gates
 
 The gates are the checks of each change's kind, written as gates in the proposal (`step.md`,

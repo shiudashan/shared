@@ -12,8 +12,10 @@ How a change is made, checked and recorded. The step holds for every project tha
   and releases.
 - **M** is a project. M holds a plan, M.p, and a prototype, M.f. M.p is the specification of
   M.f.
-- **S** is the development system. S builds, reviews and improves M. S also improves S's own
-  parts: these specs, the agents that play the roles, and the project's data.
+- **S** is the development system: an agent the developer talks with (S, the agent). S builds,
+  reviews and improves M. S also records and grades its own runs and writes findings about
+  itself. S never changes its own parts: these specs, the agents that play the roles, and its
+  programs. The learner, L, changes them (Retrospective and curation).
 - **A generation** is a major iteration of M, such as the fifth rebuild of a prototype. A
   generation n has versions n.0, n.1, and so on (`versioning.md`).
 - **A version** v is one state of M.p and M.f. A step of S moves M from v to v+1.
@@ -31,6 +33,46 @@ and the person who develops M on top (Developer mode).
 No role reviews an artifact it wrote. (ITIL's standard change; DORA on change approval.)
 
 The data each action reads and writes is described in `data.md`.
+
+## S, the agent
+
+S is an agent with a chat interface. The developer talks with S, and S develops M with the
+developer.
+
+- **Each turn belongs to one stage.** S's turns rotate through the stages of the step below:
+  monitor, propose and review, decide, code, code review, release, use case. Every turn of S
+  knows which stage the step is in, and does that stage's work. S reads the stage from the step's
+  state in `S/steps/<step id>/`, not from the chat. A message that bears on another stage is kept
+  verbatim and taken up when that stage comes; it moves the step only when the developer says so.
+  (A plain coding agent's turns are all the same turn; S's are not.)
+- **S directs a coding agent.** S does not edit the codebase itself. It hands each change to a
+  coding agent, such as Claude Code, Codex, OpenCode or aider, through one interface, and judges
+  what comes back (`coder.md`, The coding agent). Which coding agent fills the interface is
+  configuration.
+- **S learns its developers' ways.** The developer's words at each stage are kept as data
+  (Developer mode), and the layers carry them across components and projects (`upstream.md`). Over
+  many projects S learns the ways its developers want software developed. That learning is what
+  sets S apart from the coding agent it calls.
+- **S critiques itself.** Each step S takes is a run of S, and the developer's answers grade it.
+  S reads its own runs and writes findings about itself, as data. It does not act on them; L
+  does (Retrospective and curation).
+
+## The plan
+
+Development follows an overall plan. A plan states the design M is heading for and the
+installments that reach it, in order. The developer writes or approves a plan and activates it;
+`chain.json`'s `plan` names the active plan's file, and a layer has at most one active plan.
+
+When a plan is active, every step is conditioned on it, and so is every role in every hand-off.
+Each role reads the plan with its task, says which installment its work serves, and follows what
+the plan says that installment does and in what order. Where its work goes beyond the plan or
+departs from it, the role says so and why. The run reviewer writes findings for the next
+installments as well as from the runs, and the planner proposes the next installments from them.
+A finding outside the plan is still written, and the plan's order weighs it.
+
+The plan changes only when the developer changes it. A step's work may show that the plan should
+change; S then says so to the developer, and goes on by the plan until the developer decides.
+When no plan is active, the step works from the findings alone.
 
 ## Changes, their kinds and their checks
 
@@ -230,12 +272,11 @@ the developer, the developer takes it out of `consult`, and its work is shown wi
 consulted step. (Interrupt and resume in human-in-the-loop agent frameworks, such as LangGraph;
 levels of automation, Sheridan and Verplank, and Parasuraman, Sheridan and Wickens 2000.)
 
-A Claude Code session runs S with the developer (the skill `run-s`). It plays the steps with
-`step.sh`, shows each consulted step's work, and records the developer's answer with
-`S/src/gate.sh <layer root> approve | edit | reject | takeover "<the developer's words>"`. A hook
-puts where the step stands beside each of the developer's messages, so the session works from the
-step's state, not from the chat. Each role also names, in its reply, the entries it relied on, and
-the step's log keeps them.
+S works with the developer in its chat (S, the agent). It plays the steps with `step.sh`, shows
+each consulted step's work, and records the developer's answer with
+`S/src/gate.sh <layer root> approve | edit | reject | takeover "<the developer's words>"`. Each
+turn starts from the step's state, not from the chat. Each role also names, in its reply, the
+entries it relied on, and the step's log keeps them.
 
 Every message to a role starts with the global prompt, `S/src/agents/global.md`: the rules every
 role shares, such as how RSI differs from the maintenance of a live website. The role's own
@@ -244,7 +285,7 @@ prompt alone, not in the role prompts (`habits.md`, one rule per decision).
 
 `S/src/chain.json` holds the layer's chain: each hand-off, its role, what the role writes, how
 the hand-off starts, how many rounds the propose-review loop may take, the layer's run command,
-and the leg to the layer above. `S/src/step.sh <layer root>` plays the chain. It gives each role
+the active plan, and the leg to the layer above. `S/src/step.sh <layer root>` plays the chain. It gives each role
 its prompt, its settings and the step so far, records each hand-off in the step's log
 `S/steps/<step id>/`, and stops at the end of each consulted step. `step.sh <layer root>
 --from <hand-off>` resumes there. When a role writes an entry tagged `"upstream": "candidate"`,
@@ -266,9 +307,26 @@ Two activities sit beside the loop rather than in its sequence. Each is placed w
 appears.
 
 - **Retrospective** looks at how S itself worked: which findings, proposals, reviews and checks
-  helped, and which cost time and gave nothing. S holds one retrospective per loop, after
-  monitor, and a postmortem at once after a release that proves worse. The retrospective's
-  changes to S are changes like any other. (Scrum; Google SRE.)
+  helped, and which cost time and gave nothing. The retrospective is monitor, step 1, applied
+  with S as the M:
+  - S's plan is `S/specs/`, and S's program is `S/src/`, the agents' prompts included.
+  - A run of S is one step of S on a layer. Its run record is the step's log, `S/steps/<step
+    id>/`: each hand-off, the entries each role used, each role's reply, its time and tokens, and
+    the developer's words.
+  - The developer's answers at the consulted steps are the run's grades. An approval grades that
+    step's work as good. A rejection or a correction grades it as wanting, and the developer's
+    words are the reason.
+  - A use case of S is a layer as it stood when a step started, with what the developer asked of
+    the step.
+  - S's run reviewer reads S's runs and writes findings about S's own parts: its roles, its
+    prompts, its chain and its checks. The findings stop there. They are data, and they go up by
+    upstream with the runs and grades they rest on (`upstream.md`). No step of S proposes, codes
+    or releases a change to S.
+  - The learner, L, reads that data across layers, builds training and test sets from it,
+    changes S, and keeps a change only when it proves better on the test set.
+
+  S holds one retrospective per loop, after monitor, and a postmortem at once after a release
+  that proves worse. (Scrum; Google SRE.)
 - **Curation** keeps the labels that prove useful. Grades, feedback and priority orders that
   hold beyond the run or the step they were given in become reference data, off the critical
   path. (LangSmith and Langfuse datasets.)
