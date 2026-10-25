@@ -1,0 +1,32 @@
+{
+  "id": "f5-task-graph-code-review-1",
+  "by": "code-reviewer, played by Claude Opus 5.5 (claude-opus-5-5)",
+  "status": "approved",
+  "diff": "A change to an agent that turns a hypothesis into a plan: a tree of nodes, each either split into part nodes or marked final. A model writes each node in steps that a driver program runs; a message builder builds each step's message. A human reviewer comments on nodes in rounds and ends each round by pressing a button. The diff turns the reviewer's comments at the end of each round into a graph of tasks and runs one step per task.",
+  "change": "At the end of each round, the reviewer's comments become a dependency graph of tasks, each with a class, after-edges with reasons, and conflicts. A turn runs as many tasks as its room allows. When comments conflict the turn goes on, and only the tasks the conflict names and those resting on them wait. Comments cut for room (left out because a turn runs at most a set number of tasks) or held by a conflict are filled back in (copied word for word) for the next round as the reviewer's comments. A step carries only its own task's comments, and records as taken up (done, so not filled back in) only its own.",
+  "comments": [
+    {
+      "lines": "the driver program, lines 1278-1286",
+      "text": "The step that creates a node's part nodes, after the reviewer approves the node's decision, marks every open comment on its node as taken up, not only the comments of its own task. The new line adds the node's list of comments not yet taken up to the task's list of the comments it was made from. So a comment that a conflict holds, or that was cut for room, is marked done by a step that is not its task. Example: node Y is marked final. Comment F2 'add three parts to Y' and comment F3 'no new parts under Y' conflict, and their tasks wait. The reviewer approves Y's decision, the part-creating step on Y runs, and it marks F2 and F3 taken up. The conflict is lost, and nothing is filled in for the next round. Fix: mark only the comments the task was made from.",
+      "rule": "the change's spec, 'A step carries only its own task's comments', and its conflict clause, only the tasks a conflict names and those resting on them wait"
+    },
+    {
+      "lines": "the message builder, line 222",
+      "text": "The message for the part-creating step still gives the model every comment on the node, under the heading 'The reviewer's feedback on this node, to take up:'. The node files given to the writing, part-creating and rewriting steps also carry every comment, each written into the file as a line. So a step on a node acts on comments of other tasks, held and cut ones too. A cut comment is then done in this turn, and also copied into the next round as not done. Fix: a step's message names only its task's comments, and other tasks' comment lines are left out of the files the step is given. The message builder's unit test checks only the instruction lines, not the files; it should cover this case.",
+      "rule": "the change's spec, 'A step carries only its own task's comments'; the reviewer's design, given earlier in the development process, 'It gets no comments that aren't about its node'"
+    }
+  ],
+  "outcome": "request changes",
+  "made_up": false,
+  "pattern": {
+    "context": "Work items (here, a reviewer's comments) are turned into tasks. A turn runs only some tasks: the rest are deferred for capacity or held by a conflict, and carried to the next round unless recorded as done. Several tasks can touch the same object.",
+    "problem": "A step reads its input and records its completions by object (every open item on the object it works on) instead of by task. It then acts on, and marks done, items that belong to deferred or held tasks. Held conflicts vanish, and deferred items are both done now and carried forward as not done.",
+    "solution": "Key both what a step is given and what it records as done to the task's own list of items. Strip other tasks' items from everything the step receives, including attached files, not only the instruction text.",
+    "consequences": "Deferred and held items survive intact to the next round, and conflicts stay visible. A step no longer sees sibling items on the same object, so any context it needs from them must come through its own task. Tests must check the step's whole input, files included."
+  },
+  "related": [
+    "f5-task-graph",
+    "f5-task-graph-approve",
+    "f5-task-graph-code-review-2"
+  ]
+}
