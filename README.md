@@ -71,6 +71,12 @@ repeating the same mistake less likely. Thus our system must find a way to retur
 coder to an original state, then give the coder an instruction with the benefit of 
 the hindsight.
 
+- Commercial coding agents sometimes fake efforts. It simply echos back assuming 
+that the user had done good thinking. For instance, a coding agent may concur
+with the user's statement "the code is" without checking the code itself. Therefore
+our system must anticipate the SOP breaking, bad behavior, from the underlying
+agents and forestall / catch those by devising proper prompts and by devising proper
+checks.
 
 ## Learning through observation
 
