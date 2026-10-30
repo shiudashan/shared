@@ -1,11 +1,14 @@
 # Mantras
 
-How engineering work is judged. Reviews of specs and code, including code assembled from the
-work of several agents, use the mantras as criteria. A reviewer of code is built on the mantras,
-together with examples of each.
+The principles underlying how we do engineering work. Whether we plan, spec, survey, code, 
+run experiment, debug, communicate, review, debate, use the mantras as criteria as guiding
+principles. 
 
-Each project keeps its own examples of each mantra, in the words of whoever gave them, as part
-of the project's data.
+This document gives the mantras. A mantra might be broad and inclusive, so for some
+we also give examples. 
+
+Each project shall keeps its own examples of each mantra, in the words of whoever gave them, 
+as we encourage a certain degree of customization of mantras for a project. 
 
 ## Unify and simplify
 
@@ -50,3 +53,22 @@ This is not a design question for the developer.
 
 After hard-coding parameters to get a function working, consider moving them into
 configuration objects.
+
+## Fail early, fail loud.
+
+When the behavior of a program deviates from what is expected, produce loud errors, in log,
+console log, and even terminate the program if necessary.
+
+A hallmark of AI-driven behavior, expressed in a pseudo code, is
+
+if (sympton that can predict the primary path will fail) { use this secondary path }
+
+Such pattern also invites the use of hard coded values for the sympton prediction,
+see above.
+
+This biggest sin of this kind of behavior is that usually these come from AI rewrites
+against unit test failures. Director, or other agents, are complete unaware of this
+type of terrible local patches. 
+
+Instead, when error happens, let the Director and other agents know. These announced 
+errors feed into "unify and simply", and avoid "hard coded parameters".
